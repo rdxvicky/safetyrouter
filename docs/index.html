@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafetyRouter — Always get an unbiased answer</title>
+  <meta name="description" content="Bias-aware LLM routing framework. Classifies bias type locally at zero API cost, then routes to the best specialized model for that category." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange:        #f97316;
+      --orange-light:  #fb923c;
+      --orange-dim:    #ea580c;
+      --orange-glow:   rgba(249,115,22,0.15);
+      --orange-border: rgba(249,115,22,0.3);
+      --bg:            #080808;
+      --bg2:           #101010;
+      --bg3:           #161616;
+      --bg4:           #1c1c1c;
+      --border:        #1f1f1f;
+      --text:          #f4f4f5;
+      --text2:         #a1a1aa;
+      --text3:         #52525b;
+      --mono:          'JetBrains Mono', monospace;
+      --sans:          'Inter', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem;
+      height: 60px;
+      background: rgba(8,8,8,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 700; font-size: 1.05rem; letter-spacing: -0.02em;
+    }
+
+    .nav-logo-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 8px var(--orange);
+    }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 1.5rem;
+      font-size: 0.875rem; color: var(--text2);
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-github {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.35rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: var(--text2);
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .nav-github:hover { border-color: var(--orange-border); color: var(--text); }
+
+    /* ── HERO ── */
+    .hero {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center;
+      padding: 7rem 1.5rem 5rem;
+      position: relative; overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse, rgba(249,115,22,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.3rem 0.9rem;
+      border: 1px solid var(--orange-border);
+      border-radius: 999px;
+      font-size: 0.78rem; font-weight: 500;
+      color: var(--orange-light);
+      background: var(--orange-glow);
+      margin-bottom: 2rem;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--orange);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      max-width: 720px;
+      margin-bottom: 1.25rem;
+    }
+
+    h1 span { color: var(--orange); }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.15rem);
+      color: var(--text2);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-ctas {
+      display: flex; align-items: center; gap: 1rem;
+      flex-wrap: wrap; justify-content: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.7rem 1.4rem;
+      background: var(--orange);
+      color: #fff;
+      font-weight: 600; font-size: 0.9rem;
+      border-radius: 8px;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-primary:hover { background: var(--orange-dim); transform: translateY(-1px); }
+
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.7rem 1.4rem;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-size: 0.9rem;
+      border-radius: 8px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-secondary:hover { border-color: var(--orange-border); color: var(--text); }
+
+    /* ── INSTALL STRIP ── */
+    .install-strip {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.6rem 1.25rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: var(--mono);
+      font-size: 0.875rem;
+      color: var(--text2);
+      cursor: pointer;
+      transition: border-color 0.2s;
+      position: relative;
+    }
+
+    .install-strip:hover { border-color: var(--orange-border); }
+    .install-strip .dollar { color: var(--orange); }
+    .install-strip .cmd { color: var(--text); }
+
+    .copy-btn {
+      display: flex; align-items: center;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 0.72rem;
+      color: var(--text3);
+      background: var(--bg4);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--sans);
+    }
+
+    .copy-btn:hover { border-color: var(--orange-border); color: var(--orange); }
+    .copy-btn.copied { color: #4ade80; border-color: rgba(74,222,128,0.3); }
+
+    /* ── FLOW DIAGRAM ── */
+    .section { padding: 5rem 1.5rem; max-width: 1000px; margin: 0 auto; }
+
+    .section-label {
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--orange);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800; letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+
+    .section-sub {
+      font-size: 1rem; color: var(--text2);
+      max-width: 540px; line-height: 1.7;
+      margin-bottom: 3rem;
+    }
+
+    .flow {
+      display: flex; align-items: center;
+      gap: 0; flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .flow-step {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center;
+      padding: 1.5rem 1.25rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 180px;
+      transition: border-color 0.2s;
+    }
+
+    .flow-step:hover { border-color: var(--orange-border); }
+
+    .flow-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: var(--orange-glow);
+      border: 1px solid var(--orange-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .flow-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .flow-desc  { font-size: 0.75rem; color: var(--text2); line-height: 1.5; }
+
+    .flow-arrow {
+      color: var(--orange);
+      font-size: 1.2rem;
+      padding: 0 0.5rem;
+      flex-shrink: 0;
+    }
+
+    /* ── ROUTING TABLE ── */
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead th {
+      padding: 0.85rem 1.25rem;
+      text-align: left;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--text3);
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg3); }
+
+    tbody td { padding: 0.85rem 1.25rem; font-size: 0.875rem; }
+
+    .tag {
+      display: inline-flex; align-items: center;
+      padding: 0.2rem 0.6rem;
+      border-radius: 5px;
+      font-family: var(--mono); font-size: 0.78rem;
+      background: var(--bg4); border: 1px solid var(--border);
+      color: var(--orange-light);
+    }
+
+    .model-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 5px;
+      font-size: 0.78rem; font-weight: 500;
+      background: var(--bg4); border: 1px solid var(--border);
+    }
+
+    .acc-bar {
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+
+    .acc-track {
+      flex: 1; height: 4px; background: var(--bg4); border-radius: 2px; max-width: 80px;
+    }
+
+    .acc-fill {
+      height: 100%; border-radius: 2px;
+      background: linear-gradient(90deg, var(--orange-dim), var(--orange));
+    }
+
+    .acc-num { font-size: 0.8rem; color: var(--text2); font-family: var(--mono); }
+
+    /* ── CODE TABS ── */
+    .tabs { display: flex; gap: 0.35rem; margin-bottom: 0; }
+
+    .tab {
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem; font-weight: 500;
+      border-radius: 7px 7px 0 0;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      color: var(--text3);
+      cursor: pointer;
+      background: var(--bg3);
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      background: var(--bg4);
+      color: var(--orange);
+      border-color: var(--orange-border);
+    }
+
+    .code-block {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 0 10px 10px 10px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg4);
+    }
+
+    .code-dots { display: flex; gap: 0.35rem; }
+    .code-dot  { width: 10px; height: 10px; border-radius: 50%; }
+    .code-dot:nth-child(1) { background: #ff5f57; }
+    .code-dot:nth-child(2) { background: #febc2e; }
+    .code-dot:nth-child(3) { background: #28c840; }
+
+    .code-lang { font-size: 0.72rem; color: var(--text3); font-family: var(--mono); }
+
+    pre {
+      padding: 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.83rem;
+      line-height: 1.75;
+      overflow-x: auto;
+      color: #e4e4e7;
+    }
+
+    .kw  { color: #fb923c; }   /* keyword — orange */
+    .fn  { color: #fbbf24; }   /* function — amber */
+    .st  { color: #86efac; }   /* string — green */
+    .cm  { color: #52525b; font-style: italic; } /* comment */
+    .nm  { color: #93c5fd; }   /* name/var — blue */
+    .op  { color: #f4f4f5; }   /* operator */
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── FEATURES GRID ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+
+    .feature-card {
+      padding: 1.5rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .feature-card:hover { border-color: var(--orange-border); transform: translateY(-2px); }
+
+    .feature-icon {
+      font-size: 1.5rem; margin-bottom: 0.85rem;
+      width: 42px; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--orange-glow);
+      border: 1px solid var(--orange-border);
+      border-radius: 9px;
+    }
+
+    .feature-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .feature-desc  { font-size: 0.83rem; color: var(--text2); line-height: 1.6; }
+
+    /* ── PROVIDERS ── */
+    .providers {
+      display: flex; flex-wrap: wrap; gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .provider-chip {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.6rem 1.1rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.85rem; font-weight: 500;
+      transition: border-color 0.2s;
+    }
+
+    .provider-chip:hover { border-color: var(--orange-border); }
+    .provider-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); }
+
+    /* ── INSTALL SECTION ── */
+    .install-section {
+      text-align: center;
+      padding: 5rem 1.5rem;
+      background: linear-gradient(180deg, transparent, rgba(249,115,22,0.04), transparent);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .install-commands {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.6rem; margin-top: 2rem;
+    }
+
+    .cmd-line {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.65rem 1.25rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--mono); font-size: 0.85rem;
+      width: 100%; max-width: 480px;
+    }
+
+    .cmd-line .dollar { color: var(--orange); }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 3rem 2rem;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1.5rem;
+    }
+
+    .footer-logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
+
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .footer-links a { font-size: 0.85rem; color: var(--text3); transition: color 0.15s; }
+    .footer-links a:hover { color: var(--orange); }
+
+    .footer-copy { font-size: 0.8rem; color: var(--text3); }
+
+    /* ── DIVIDER ── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      nav { padding: 0 1rem; }
+      .nav-links { gap: 1rem; }
+      .flow { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    SafetyRouter
+  </a>
+  <div class="nav-links">
+    <a href="#how-it-works">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#code">Docs</a>
+    <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="nav-github">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="badge">
+    <div class="badge-dot"></div>
+    Open Source &nbsp;·&nbsp; v0.1.1 &nbsp;·&nbsp; Apache 2.0
+  </div>
+
+  <h1>Always get an<br/><span>unbiased answer.</span></h1>
+
+  <p class="hero-sub">
+    A framework that detects the type of bias in your prompt, then automatically
+    routes it to the model best equipped to respond fairly — every single time.
+  </p>
+
+  <div class="hero-ctas">
+    <a href="#code" class="btn-primary">
+      Get Started
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+    <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="btn-secondary">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      View on GitHub
+    </a>
+  </div>
+
+  <div class="install-strip" onclick="copyInstall(this)">
+    <span class="dollar">$</span>
+    <span class="cmd">pip install safetyrouter</span>
+    <span style="flex:1"></span>
+    <button class="copy-btn" id="copy-hero">Copy</button>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── HOW IT WORKS ── -->
+<section class="section" id="how-it-works">
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">Three steps to a fairer answer</h2>
+  <p class="section-sub">
+    SafetyRouter intercepts your prompt, identifies its bias profile locally,
+    and forwards it to the model with the highest benchmark accuracy for that category.
+  </p>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-icon">📝</div>
+      <div class="flow-title">Your Prompt</div>
+      <div class="flow-desc">Send any question or text to SafetyRouter</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-icon">🔍</div>
+      <div class="flow-title">Bias Classified</div>
+      <div class="flow-desc">Local classifier scores 9 bias categories — zero API cost</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-icon">🧭</div>
+      <div class="flow-title">Best Model Selected</div>
+      <div class="flow-desc">Routing table picks the model with highest fairness score</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-icon">✅</div>
+      <div class="flow-title">Unbiased Response</div>
+      <div class="flow-desc">You receive the fairest answer, automatically</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── ROUTING TABLE ── -->
+<section class="section">
+  <div class="section-label">Routing Table</div>
+  <h2 class="section-title">Every bias type has a specialist</h2>
+  <p class="section-sub">
+    Routing decisions are backed by benchmark accuracy scores. The table is fully
+    configurable — bring your own mappings.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Bias Category</th>
+          <th>Routed To</th>
+          <th>Accuracy</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag">sexual_orientation</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>GPT-4</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:91%"></div></div><span class="acc-num">91%</span></div></td>
+        </tr>
+        <tr>
+          <td><span class="tag">gender</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>GPT-4</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:90%"></div></div><span class="acc-num">90%</span></div></td>
+        </tr>
+        <tr>
+          <td><span class="tag">race</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:88%"></div></div><span class="acc-num">88%</span></div></td>
+        </tr>
+        <tr>
+          <td><span class="tag">nationality</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>GPT-4</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:87%"></div></div><span class="acc-num">87%</span></div></td>
+        </tr>
+        <tr>
+          <td><span class="tag">disability</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:85%"></div></div><span class="acc-num">85%</span></div></td>
+        </tr>
+        <tr>
+          <td><span class="tag">religion</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:84%"></div></div><span class="acc-num">84%</span></div></td>
+        </tr>
+        <tr>
+          <td><span class="tag">age</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>Mixtral</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:83%"></div></div><span class="acc-num">83%</span></div></td>
+        </tr>
+        <tr>
+          <td><span class="tag">socioeconomic_status</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>Gemini</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:82%"></div></div><span class="acc-num">82%</span></div></td>
+        </tr>
+        <tr>
+          <td><span class="tag">physical_appearance</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>Mixtral</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:79%"></div></div><span class="acc-num">79%</span></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── CODE EXAMPLES ── -->
+<section class="section" id="code">
+  <div class="section-label">Quick Start</div>
+  <h2 class="section-title">Three ways to use it</h2>
+  <p class="section-sub">Python SDK, CLI, or drop it behind an HTTP server. Pick what fits your stack.</p>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('sdk', this)">Python SDK</div>
+    <div class="tab" onclick="switchTab('cli', this)">CLI</div>
+    <div class="tab" onclick="switchTab('http', this)">HTTP Server</div>
+    <div class="tab" onclick="switchTab('local', this)">Fully Local</div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
+      <span class="code-lang" id="code-lang-label">python</span>
+    </div>
+
+    <!-- SDK -->
+    <div class="tab-panel active" id="panel-sdk">
+<pre><span class="kw">import</span> asyncio
+<span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>
+
+<span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>()  <span class="cm"># reads API keys from environment</span>
+
+<span class="kw">async def</span> <span class="fn">main</span>():
+    <span class="nm">response</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="st">"Should women be paid less than men?"</span>)
+
+    <span class="fn">print</span>(<span class="nm">response</span>.bias_category)   <span class="cm"># "gender"</span>
+    <span class="fn">print</span>(<span class="nm">response</span>.selected_model)  <span class="cm"># "gpt4"</span>
+    <span class="fn">print</span>(<span class="nm">response</span>.confidence)      <span class="cm"># 0.92</span>
+    <span class="fn">print</span>(<span class="nm">response</span>.content)         <span class="cm"># unbiased answer from GPT-4</span>
+
+<span class="cm"># Dry run — classify only, zero API cost</span>
+<span class="kw">async def</span> <span class="fn">inspect</span>():
+    <span class="nm">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="st">"text"</span>, execute<span class="op">=</span><span class="kw">False</span>)
+    <span class="fn">print</span>(<span class="nm">result</span>.bias_category)  <span class="cm"># see routing without spending tokens</span>
+
+<span class="cm"># Streaming</span>
+<span class="kw">async for</span> <span class="nm">token</span> <span class="kw">in</span> <span class="nm">router</span>.<span class="fn">stream</span>(<span class="st">"Is age discrimination legal?"</span>):
+    <span class="fn">print</span>(<span class="nm">token</span>, end<span class="op">=</span><span class="st">""</span>, flush<span class="op">=</span><span class="kw">True</span>)
+
+asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
+    </div>
+
+    <!-- CLI -->
+    <div class="tab-panel" id="panel-cli">
+<pre><span class="cm"># Route a prompt — bias classified + best model called</span>
+<span class="dollar">$</span> safetyrouter route <span class="st">"Is discrimination based on religion acceptable?"</span>
+
+  Bias Category : religion
+  Confidence    : 87%
+  Routed to     : claude
+  Model Accuracy: 84%
+
+  --- Response ---
+  No, discrimination based on religion is not acceptable...
+
+<span class="cm"># Classify only — free, no API call</span>
+<span class="dollar">$</span> safetyrouter classify <span class="st">"Women are worse drivers than men."</span>
+
+  Top category  : gender
+  Confidence    : 91%
+  Would route to: gpt4
+
+<span class="cm"># Inspect the routing table</span>
+<span class="dollar">$</span> safetyrouter inspect
+
+<span class="cm"># Stream the response</span>
+<span class="dollar">$</span> safetyrouter route <span class="st">"text"</span> --stream</pre>
+    </div>
+
+    <!-- HTTP -->
+    <div class="tab-panel" id="panel-http">
+<pre><span class="cm"># Start the server</span>
+<span class="dollar">$</span> safetyrouter serve --port 8000
+
+<span class="cm"># Route a prompt</span>
+<span class="dollar">$</span> curl -X POST http://localhost:8000/route \
+    -H <span class="st">"Content-Type: application/json"</span> \
+    -d <span class="st">'{"text": "Should people be judged by their race?"}'</span>
+
+<span class="cm"># Classify only (no model call)</span>
+<span class="dollar">$</span> curl -X POST http://localhost:8000/classify \
+    -H <span class="st">"Content-Type: application/json"</span> \
+    -d <span class="st">'{"text": "Women shouldn'\''t vote."}'</span>
+
+<span class="cm"># Inspect routing table</span>
+<span class="dollar">$</span> curl http://localhost:8000/routing-table
+
+<span class="cm"># Interactive docs</span>
+<span class="dollar">$</span> open http://localhost:8000/docs</pre>
+    </div>
+
+    <!-- LOCAL -->
+    <div class="tab-panel" id="panel-local">
+<pre><span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>
+<span class="kw">from</span> safetyrouter.providers <span class="kw">import</span> <span class="nm">OllamaProvider</span>
+
+<span class="cm"># Route everything to local Ollama models — no API keys needed</span>
+<span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>(
+    providers<span class="op">=</span>{
+        <span class="st">"gpt4"</span>:   <span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"llama3.2"</span>),
+        <span class="st">"claude"</span>: <span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"llama3.2"</span>),
+        <span class="st">"gemini"</span>: <span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"mistral"</span>),
+        <span class="st">"mixtral"</span>:<span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"mixtral"</span>),
+    }
+)
+
+<span class="cm"># Custom routing overrides</span>
+<span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouterConfig</span>
+
+<span class="nm">config</span> <span class="op">=</span> <span class="fn">SafetyRouterConfig</span>(
+    custom_routing<span class="op">=</span>{<span class="st">"gender"</span>: <span class="st">"claude"</span>, <span class="st">"religion"</span>: <span class="st">"gemini"</span>}
+)
+<span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>(config<span class="op">=</span><span class="nm">config</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── FEATURES ── -->
+<section class="section" id="features">
+  <div class="section-label">Features</div>
+  <h2 class="section-title">Built for developers</h2>
+  <p class="section-sub">Everything you need to integrate unbiased LLM responses into your app.</p>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Zero API cost classification</div>
+      <div class="feature-desc">Bias detection runs entirely on your machine. No API calls, no cost, no data leaving your environment.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎯</div>
+      <div class="feature-title">9 bias categories</div>
+      <div class="feature-desc">Gender, race, age, religion, disability, nationality, sexual orientation, physical appearance, socioeconomic status.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔌</div>
+      <div class="feature-title">4 providers out of the box</div>
+      <div class="feature-desc">OpenAI, Anthropic, Google, and Groq (Mixtral). Plug in your own provider with a single class.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌊</div>
+      <div class="feature-title">Streaming support</div>
+      <div class="feature-desc">Token-by-token streaming across all providers via a unified async generator interface.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏠</div>
+      <div class="feature-title">Fully local mode</div>
+      <div class="feature-desc">Route everything to local Ollama models. Zero external API dependency — perfect for air-gapped environments.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛠️</div>
+      <div class="feature-title">Fully configurable</div>
+      <div class="feature-desc">Override any routing rule, swap models, add new bias categories — all via config or custom providers.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── PROVIDERS ── -->
+<section class="section" style="text-align:center; padding-top: 3.5rem; padding-bottom: 3.5rem;">
+  <div class="section-label" style="text-align:center">Supported Providers</div>
+  <h2 class="section-title">Works with every major LLM</h2>
+  <p class="section-sub" style="margin: 0 auto 2rem;">All providers are optional — only install what you use.</p>
+  <div class="providers">
+    <div class="provider-chip"><div class="provider-dot"></div>OpenAI (GPT-4o)</div>
+    <div class="provider-chip"><div class="provider-dot"></div>Anthropic (Claude)</div>
+    <div class="provider-chip"><div class="provider-dot"></div>Google (Gemini)</div>
+    <div class="provider-chip"><div class="provider-dot"></div>Groq (Mixtral)</div>
+    <div class="provider-chip"><div class="provider-dot"></div>Ollama (Local)</div>
+    <div class="provider-chip" style="border-style:dashed; color:var(--text3)">+ Bring your own</div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── INSTALL ── -->
+<section class="install-section" id="install">
+  <div class="section-label" style="text-align:center">Install</div>
+  <h2 class="section-title" style="text-align:center">Get started in seconds</h2>
+  <p style="color:var(--text2); font-size:0.95rem; max-width:460px; margin: 0.5rem auto 0; line-height:1.7;">
+    Requires <a href="https://ollama.com" target="_blank" style="color:var(--orange)">Ollama</a> running locally for bias classification.
+    API keys only for the providers you use.
+  </p>
+  <div class="install-commands">
+    <div class="cmd-line"><span class="dollar">$</span> pip install safetyrouter</div>
+    <div class="cmd-line"><span class="dollar">$</span> pip install <span style="color:var(--orange)">"safetyrouter[openai]"</span></div>
+    <div class="cmd-line"><span class="dollar">$</span> pip install <span style="color:var(--orange)">"safetyrouter[all]"</span></div>
+  </div>
+  <div style="margin-top: 2rem; display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+    <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="btn-primary">View on GitHub</a>
+    <a href="https://pypi.org/project/safetyrouter/" target="_blank" class="btn-secondary">PyPI Package</a>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">
+    <div class="nav-logo-dot"></div>
+    SafetyRouter
+    <span style="color:var(--text3); font-weight:400; font-size:0.8rem; margin-left:0.5rem">v0.1.1</span>
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com/rdxvicky/safetyrouter" target="_blank">GitHub</a>
+    <a href="https://pypi.org/project/safetyrouter/" target="_blank">PyPI</a>
+    <a href="https://github.com/rdxvicky/safetyrouter/issues" target="_blank">Issues</a>
+    <a href="https://github.com/rdxvicky/safetyrouter/blob/main/LICENSE" target="_blank">License</a>
+  </div>
+  <div class="footer-copy">Apache 2.0 · Open Source</div>
+</footer>
+
+<script>
+  // Copy install command
+  function copyInstall(el) {
+    navigator.clipboard.writeText('pip install safetyrouter');
+    const btn = el.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  }
+
+  // Tab switching
+  function switchTab(name, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
+    const labels = { sdk: 'python', cli: 'bash', http: 'bash', local: 'python' };
+    document.getElementById('code-lang-label').textContent = labels[name];
+  }
+</script>
+</body>
+</html>
