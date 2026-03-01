@@ -1,8 +1,8 @@
 # SafetyRouter
 
-**Bias-aware LLM routing** — detects the type of bias in a prompt locally using [gemma3n](https://ollama.com/library/gemma3n) (via Ollama), then automatically routes to the best specialized model for that bias category.
+**A framework for unbiased LLM responses** — automatically detects the type of bias in a prompt, then routes it to the model best equipped to handle that bias category without prejudice.
 
-Inspired by [RouteLLM](https://github.com/lm-sys/RouteLLM). Where RouteLLM routes on **cost vs quality**, SafetyRouter routes on **bias type** — sending each query to the model that's empirically best at handling it without bias.
+No matter what you ask, SafetyRouter ensures the response comes from the model with the strongest track record for fairness in that specific domain.
 
 ---
 
@@ -13,8 +13,8 @@ User Prompt
     │
     ▼
 ┌─────────────────────────────────────┐
-│  gemma3n:e2b (local, via Ollama)    │  ← FREE, runs on your machine
-│  Bias Classifier                    │
+│  Local Bias Classifier              │  ← FREE, runs on your machine
+│                                     │
 │  gender: 0.92 ← highest             │
 │  race:   0.05                       │
 │  age:    0.01  ...                  │
@@ -35,21 +35,26 @@ User Prompt
 └──────────────┬──────────────────────┘
                │
                ▼
-          GPT-4o Response
+        Unbiased Response
 ```
 
-Accuracy scores are benchmarked against bias-specific datasets (see the [research paper](./Group10_SafetyRouter%20-%20A%20Scalable%20Bias%20Detection%20and%20Mitigation%20System%20(1).pdf)).
+Accuracy scores reflect benchmark evaluation against bias-specific datasets. Community contributions to improve these mappings are welcome.
 
 ---
 
 ## Requirements
 
-- **Ollama** running locally with `gemma3n:e2b` pulled
+- **Ollama** running locally (used for the local bias classifier)
 - API keys only for the providers you use (all are optional)
 
 ```bash
 # Install Ollama: https://ollama.com
+
+# Default classifier model (recommended)
 ollama pull gemma3n:e2b
+
+# Or bring your own — any Ollama model works
+ollama pull <your-preferred-model>
 ```
 
 ---
@@ -90,7 +95,7 @@ async def main():
     print(f"Bias detected: {response.bias_category}")       # gender
     print(f"Routed to:     {response.selected_model}")      # gpt4
     print(f"Confidence:    {response.confidence:.0%}")       # 92%
-    print(f"Response:      {response.content}")              # GPT-4's answer
+    print(f"Response:      {response.content}")              # unbiased answer
 
 asyncio.run(main())
 ```
@@ -216,8 +221,8 @@ ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_API_KEY=AIza...
 GROQ_API_KEY=gsk_...          # Free tier at console.groq.com
 
-# Optional overrides
-CLASSIFIER_MODEL=gemma3n:e2b  # or gemma3n:e4b for higher accuracy
+# Classifier model — defaults to gemma3n:e2b, bring your own Ollama model
+CLASSIFIER_MODEL=gemma3n:e2b
 OPENAI_MODEL=gpt-4o
 ANTHROPIC_MODEL=claude-opus-4-6
 ```
@@ -238,7 +243,7 @@ ANTHROPIC_MODEL=claude-opus-4-6
 | `socioeconomic_status` | Gemini | 82% |
 | `physical_appearance` | Mixtral | 79% |
 
-*Accuracy scores from benchmark evaluation in the research paper. Community contributions to improve these mappings are welcome.*
+*Community contributions to improve these mappings are welcome.*
 
 ---
 
@@ -309,5 +314,5 @@ If you use SafetyRouter in research, please cite:
 
 ```
 SafetyRouter: A Scalable Bias Detection and Mitigation System
-Group 10 Research Paper, 2024
+https://github.com/rdxvicky/safetyrouter
 ```
