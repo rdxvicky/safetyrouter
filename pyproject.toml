@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "safetyrouter"
-version = "0.1.0"
-description = "Bias-aware LLM router: detects bias type locally with gemma3n, then routes to the best specialized model"
+version = "0.1.1"
+description = "Bias-aware LLM routing framework that guarantees unbiased responses — classifies bias type locally at zero API cost, then routes to the best specialized model for that category"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "SafetyRouter Contributors" }]
