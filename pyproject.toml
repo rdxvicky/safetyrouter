@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "safetyrouter"
-version = "0.1.1"
+version = "0.1.2"
 description = "Bias-aware LLM routing framework that guarantees unbiased responses — classifies bias type locally at zero API cost, then routes to the best specialized model for that category"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -47,7 +47,7 @@ all = [
 safetyrouter = "safetyrouter.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/rdxvicky/safetyrouter"
+Homepage = "https://rdxvicky.github.io/safetyrouter/"
 Repository = "https://github.com/rdxvicky/safetyrouter"
 Issues = "https://github.com/rdxvicky/safetyrouter/issues"
 
