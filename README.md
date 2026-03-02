@@ -49,12 +49,52 @@ pip install safetyrouter
 safetyrouter setup
 ```
 
-That's it. `safetyrouter setup` handles everything automatically:
-- Installs Ollama if not present
-- Starts the Ollama service
-- Pulls the default classifier model (`gemma3n:e2b`)
+`safetyrouter setup` walks you through everything interactively:
 
-> **Bring your own model** — run `safetyrouter setup --model <model-name>` to use any Ollama model as the classifier.
+```
+SafetyRouter Setup
+──────────────────────────────
+
+[1/4] Checking Ollama installation...
+      ✓ Ollama already installed.
+
+[2/4] Checking Ollama is running...
+      ✓ Ollama already running.
+
+[3/4] Pulling classifier model (gemma3n:e2b)...
+      ✓ gemma3n:e2b is ready.
+
+[4/4] Configure LLM provider API keys...
+      Keys saved to ~/.safetyrouter.env
+
+  OpenAI       key (sk-...): sk-proj-...
+  ✓ OpenAI key saved.
+  Anthropic    key (sk-ant-...): [Enter]
+  — Anthropic skipped
+  Groq         key (gsk_...): gsk_live-...
+  ✓ Groq key saved.
+
+✓ Setup complete! SafetyRouter is ready to use.
+```
+
+**API keys are saved to `~/.safetyrouter.env`** and loaded automatically — no manual `export` needed. You can skip any provider and add keys later.
+
+**Ollama outdated?** Setup detects it and offers to update in-place:
+
+```
+[3/4] Pulling classifier model (gemma3n:e2b)...
+      Error: requires a newer version of Ollama.
+
+      Ollama is outdated and cannot run gemma3n:e2b.
+      Update Ollama now? (recommended) [Y/n]: Y
+      ✓ Ollama updated.
+      ✓ gemma3n:e2b is ready.
+```
+
+If you decline the update, setup lets you pick a compatible fallback model (e.g. `gemma2:2b`, `llama3.2:3b`).
+
+> **Bring your own model** — `safetyrouter setup --model <model-name>` uses any Ollama model as the classifier.
+> **Skip API key step** — `safetyrouter setup --skip-keys` if you prefer to configure keys manually.
 
 ### Install with specific providers
 
@@ -136,8 +176,14 @@ router = SafetyRouter(
 ### CLI
 
 ```bash
-# First-time setup (installs Ollama + pulls classifier model)
+# First-time setup (Ollama + classifier model + API keys)
 safetyrouter setup
+
+# Skip the API key step
+safetyrouter setup --skip-keys
+
+# Use a custom classifier model
+safetyrouter setup --model llama3.2
 
 # Route a prompt
 safetyrouter route "Is discrimination based on religion acceptable?"
@@ -205,7 +251,11 @@ docker run -p 8000:8000 \
 
 ## Configuration
 
-Copy `.env.example` to `.env`:
+### PyPI users
+Run `safetyrouter setup` — API keys are saved to `~/.safetyrouter.env` and loaded automatically. No manual configuration needed.
+
+### Developers / self-hosted
+Copy `.env.example` to `.env` in your project root:
 
 ```env
 OPENAI_API_KEY=sk-...
@@ -218,6 +268,8 @@ CLASSIFIER_MODEL=gemma3n:e2b
 OPENAI_MODEL=gpt-4o
 ANTHROPIC_MODEL=claude-opus-4-6
 ```
+
+Priority order: environment variables → local `.env` → `~/.safetyrouter.env`.
 
 ---
 
