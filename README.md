@@ -42,40 +42,29 @@ Accuracy scores reflect benchmark evaluation against bias-specific datasets. Com
 
 ---
 
-## Requirements
-
-- **Ollama** running locally (used for the local bias classifier)
-- API keys only for the providers you use (all are optional)
-
-```bash
-# Install Ollama: https://ollama.com
-
-# Default classifier model (recommended)
-ollama pull gemma3n:e2b
-
-# Or bring your own — any Ollama model works
-ollama pull <your-preferred-model>
-```
-
----
-
 ## Installation
 
 ```bash
-# Core only (classifier + routing logic)
 pip install safetyrouter
+safetyrouter setup
+```
 
-# With specific providers
-pip install "safetyrouter[openai]"
-pip install "safetyrouter[anthropic]"
-pip install "safetyrouter[google]"
-pip install "safetyrouter[groq]"       # Mixtral — free tier available
+That's it. `safetyrouter setup` handles everything automatically:
+- Installs Ollama if not present
+- Starts the Ollama service
+- Pulls the default classifier model (`gemma3n:e2b`)
 
-# With HTTP server
-pip install "safetyrouter[serve]"
+> **Bring your own model** — run `safetyrouter setup --model <model-name>` to use any Ollama model as the classifier.
 
-# Everything
-pip install "safetyrouter[all]"
+### Install with specific providers
+
+```bash
+pip install "safetyrouter[openai]"      # GPT-4o
+pip install "safetyrouter[anthropic]"   # Claude
+pip install "safetyrouter[google]"      # Gemini
+pip install "safetyrouter[groq]"        # Mixtral — free tier available
+pip install "safetyrouter[serve]"       # HTTP server
+pip install "safetyrouter[all]"         # Everything
 ```
 
 ---
@@ -147,6 +136,9 @@ router = SafetyRouter(
 ### CLI
 
 ```bash
+# First-time setup (installs Ollama + pulls classifier model)
+safetyrouter setup
+
 # Route a prompt
 safetyrouter route "Is discrimination based on religion acceptable?"
 

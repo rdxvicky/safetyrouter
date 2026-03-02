@@ -695,16 +695,27 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
 
     <!-- CLI -->
     <div class="tab-panel" id="panel-cli">
-<pre><span class="cm"># Route a prompt — bias classified + best model called</span>
+<pre><span class="cm"># First-time setup — installs Ollama, starts it, pulls classifier model</span>
+<span class="dollar">$</span> safetyrouter setup
+
+  SafetyRouter Setup
+  ──────────────────────────────
+  [1/3] Checking Ollama installation...
+        ✓ Ollama installed.
+  [2/3] Checking Ollama is running...
+        ✓ Ollama is running.
+  [3/3] Pulling classifier model (gemma3n:e2b)...
+        ✓ gemma3n:e2b is ready.
+
+  ✓ Setup complete! SafetyRouter is ready to use.
+
+<span class="cm"># Route a prompt — bias classified + best model called</span>
 <span class="dollar">$</span> safetyrouter route <span class="st">"Is discrimination based on religion acceptable?"</span>
 
   Bias Category : religion
   Confidence    : 87%
   Routed to     : claude
   Model Accuracy: 84%
-
-  --- Response ---
-  No, discrimination based on religion is not acceptable...
 
 <span class="cm"># Classify only — free, no API call</span>
 <span class="dollar">$</span> safetyrouter classify <span class="st">"Women are worse drivers than men."</span>
@@ -839,7 +850,9 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
   </p>
   <div class="install-commands">
     <div class="cmd-line"><span class="dollar">$</span> pip install safetyrouter</div>
-    <div class="cmd-line"><span class="dollar">$</span> pip install <span style="color:var(--orange)">"safetyrouter[openai]"</span></div>
+    <div class="cmd-line"><span class="dollar">$</span> <span style="color:var(--orange)">safetyrouter setup</span></div>
+    <div class="cmd-line" style="opacity:0.5; font-size:0.78rem;"><span class="dollar">#</span> installs Ollama + pulls classifier model automatically</div>
+    <div class="cmd-line" style="margin-top:0.5rem"><span class="dollar">$</span> pip install <span style="color:var(--orange)">"safetyrouter[openai]"</span></div>
     <div class="cmd-line"><span class="dollar">$</span> pip install <span style="color:var(--orange)">"safetyrouter[all]"</span></div>
   </div>
   <div style="margin-top: 2rem; display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
