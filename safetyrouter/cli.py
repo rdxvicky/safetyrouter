@@ -111,9 +111,25 @@ def _start_ollama():
 
 def _pull_model(model: str):
     click.echo(click.style(f"  Pulling {model} (this may take a few minutes)...", fg="yellow"))
-    result = subprocess.run(["ollama", "pull", model])
-    if result.returncode != 0:
-        click.echo(click.style(f"  ✗ Failed to pull {model}.", fg="red"))
+    proc = subprocess.Popen(
+        ["ollama", "pull", model],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    lines = []
+    for line in proc.stdout:
+        click.echo(f"  {line}", nl=False)
+        lines.append(line)
+    proc.wait()
+    if proc.returncode != 0:
+        combined = "".join(lines).lower()
+        if "newer version" in combined:
+            click.echo(click.style(f"\n  ✗ Your Ollama is too old to run {model}.", fg="red"))
+            click.echo("  → Update Ollama: https://ollama.com/download")
+            click.echo("  → Then re-run:   safetyrouter setup")
+        else:
+            click.echo(click.style(f"\n  ✗ Failed to pull {model}.", fg="red"))
         sys.exit(1)
     click.echo(click.style(f"  ✓ {model} is ready.", fg="green"))
 

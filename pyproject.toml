@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "safetyrouter"
-version = "0.1.4"
+version = "0.1.5"
 description = "Bias-aware LLM routing framework that guarantees unbiased responses — classifies bias type locally at zero API cost, then routes to the best specialized model for that category"
 readme = "README.md"
 license = { file = "LICENSE" }
