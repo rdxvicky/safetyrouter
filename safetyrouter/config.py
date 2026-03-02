@@ -10,7 +10,12 @@ from typing import Dict, Optional
 
 from dotenv import load_dotenv
 
+# Load in priority order (later calls don't override earlier ones):
+#   1. Actual environment variables   — highest priority
+#   2. Local .env file                — project-level overrides
+#   3. ~/.safetyrouter.env            — global fallback (written by `safetyrouter setup`)
 load_dotenv()
+load_dotenv(os.path.expanduser("~/.safetyrouter.env"))
 
 
 @dataclass
