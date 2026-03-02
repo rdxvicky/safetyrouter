@@ -475,12 +475,64 @@
     .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
 
     /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .section { padding: 3.5rem 1.25rem; }
+      .flow-step { width: 160px; }
+    }
+
     @media (max-width: 640px) {
+      /* Nav — hide text links on small screens, keep logo + GitHub */
       nav { padding: 0 1rem; }
-      .nav-links { gap: 1rem; }
-      .flow { flex-direction: column; }
+      .nav-links a:not(.nav-github) { display: none; }
+
+      /* Hero */
+      .hero { padding: 4rem 1rem 3rem; }
+      .hero-ctas { flex-direction: column; width: 100%; }
+      .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+      .install-strip { width: 100%; }
+
+      /* Sections */
+      .section { padding: 3rem 1rem; }
+      .section-sub { max-width: 100%; }
+
+      /* Flow */
+      .flow { flex-direction: column; align-items: center; }
+      .flow-step { width: 100%; max-width: 300px; }
       .flow-arrow { transform: rotate(90deg); }
-      footer { flex-direction: column; align-items: flex-start; }
+
+      /* Routing table — horizontal scroll */
+      .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table { min-width: 460px; }
+
+      /* Code tabs — horizontal scroll, no wrap */
+      .tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+      .tab { white-space: nowrap; flex-shrink: 0; padding: 0.45rem 0.75rem; font-size: 0.75rem; }
+      pre { font-size: 0.76rem; padding: 1.1rem; }
+
+      /* Features — single column */
+      .features { grid-template-columns: 1fr; }
+
+      /* Providers */
+      .providers { gap: 0.5rem; }
+      .provider-chip { font-size: 0.8rem; padding: 0.5rem 0.85rem; }
+
+      /* Install section two-column → stacked */
+      .install-cols { flex-direction: column !important; }
+      .install-col-commands,
+      .install-col-output { min-width: unset !important; width: 100% !important; flex: unset !important; }
+
+      /* Install section */
+      .install-section { padding: 3.5rem 1rem; }
+      .cmd-line { font-size: 0.8rem; }
+
+      /* Footer */
+      footer { flex-direction: column; align-items: flex-start; padding: 2rem 1rem; gap: 1rem; }
+      .footer-links { gap: 1rem; flex-wrap: wrap; }
+    }
+
+    @media (max-width: 400px) {
+      h1 { font-size: 2rem; }
+      .install-strip .cmd { font-size: 0.78rem; }
     }
   </style>
 </head>
@@ -507,7 +559,7 @@
 <section class="hero">
   <div class="badge">
     <div class="badge-dot"></div>
-    Open Source &nbsp;·&nbsp; v0.1.1 &nbsp;·&nbsp; Apache 2.0
+    Open Source &nbsp;·&nbsp; v0.1.4 &nbsp;·&nbsp; Apache 2.0
   </div>
 
   <h1>Always get an<br/><span>unbiased answer.</span></h1>
@@ -850,10 +902,10 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
   </p>
 
   <!-- Two-column: commands left, output right -->
-  <div style="display:flex; gap:1.5rem; margin-top:2.5rem; max-width:860px; margin-left:auto; margin-right:auto; flex-wrap:wrap; text-align:left;">
+  <div class="install-cols" style="display:flex; gap:1.5rem; margin-top:2.5rem; max-width:860px; margin-left:auto; margin-right:auto; flex-wrap:wrap; text-align:left;">
 
     <!-- Left: commands -->
-    <div style="flex:1; min-width:240px;">
+    <div class="install-col-commands" style="flex:1; min-width:240px;">
       <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text3); margin-bottom:0.75rem;">Commands</div>
       <div class="install-commands" style="align-items:stretch; margin-top:0;">
         <div class="cmd-line"><span class="dollar">$</span> pip install safetyrouter</div>
@@ -868,7 +920,7 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
     </div>
 
     <!-- Right: setup output -->
-    <div style="flex:1.4; min-width:300px;">
+    <div class="install-col-output" style="flex:1.4; min-width:300px;">
       <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text3); margin-bottom:0.75rem;">Setup output</div>
       <div class="code-block">
         <div class="code-header">
@@ -908,7 +960,7 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
   <div class="footer-logo">
     <div class="nav-logo-dot"></div>
     SafetyRouter
-    <span style="color:var(--text3); font-weight:400; font-size:0.8rem; margin-left:0.5rem">v0.1.1</span>
+    <span style="color:var(--text3); font-weight:400; font-size:0.8rem; margin-left:0.5rem">v0.1.4</span>
   </div>
   <div class="footer-links">
     <a href="https://github.com/rdxvicky/safetyrouter" target="_blank">GitHub</a>
