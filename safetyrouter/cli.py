@@ -16,6 +16,40 @@ import click
 from .config import SafetyRouterConfig
 from .router import SafetyRouter
 
+OLLAMA_ERROR_MSG = """
+Ollama is not running. SafetyRouter needs Ollama to classify bias locally.
+
+Fix it in 2 steps:
+  1. Install Ollama:   https://ollama.com/download
+  2. Pull the model:   ollama pull gemma3n:e2b
+  3. Start Ollama:     ollama serve
+
+Then try again.
+"""
+
+
+def _handle_error(e: Exception):
+    """Convert known exceptions into clean user-facing messages."""
+    msg = str(e)
+    if "Failed to connect to Ollama" in msg or "ConnectionError" in msg or "Connection refused" in msg:
+        click.echo(click.style("Error:", fg="red", bold=True) + OLLAMA_ERROR_MSG, err=True)
+        sys.exit(1)
+    if "OPENAI_API_KEY" in msg:
+        click.echo(click.style("Error: ", fg="red", bold=True) + "OPENAI_API_KEY not set.\nAdd it to your .env file or run: export OPENAI_API_KEY=sk-...", err=True)
+        sys.exit(1)
+    if "ANTHROPIC_API_KEY" in msg:
+        click.echo(click.style("Error: ", fg="red", bold=True) + "ANTHROPIC_API_KEY not set.\nAdd it to your .env file or run: export ANTHROPIC_API_KEY=sk-ant-...", err=True)
+        sys.exit(1)
+    if "GOOGLE_API_KEY" in msg:
+        click.echo(click.style("Error: ", fg="red", bold=True) + "GOOGLE_API_KEY not set.\nAdd it to your .env file or run: export GOOGLE_API_KEY=AIza...", err=True)
+        sys.exit(1)
+    if "GROQ_API_KEY" in msg:
+        click.echo(click.style("Error: ", fg="red", bold=True) + "GROQ_API_KEY not set.\nAdd it to your .env file or run: export GROQ_API_KEY=gsk_...", err=True)
+        sys.exit(1)
+    # Generic fallback
+    click.echo(click.style("Error: ", fg="red", bold=True) + msg, err=True)
+    sys.exit(1)
+
 
 def _get_router() -> SafetyRouter:
     return SafetyRouter(config=SafetyRouterConfig.from_env())
@@ -24,7 +58,7 @@ def _get_router() -> SafetyRouter:
 @click.group()
 @click.version_option(package_name="safetyrouter")
 def main():
-    """SafetyRouter — bias-aware LLM routing powered by gemma3n."""
+    """SafetyRouter — always get an unbiased answer."""
     pass
 
 
@@ -40,7 +74,7 @@ def route(text: str, no_execute: bool, stream: bool, json_output: bool):
         router = _get_router()
 
         if stream:
-            click.echo(f"Streaming via SafetyRouter...\n", err=True)
+            click.echo("Streaming via SafetyRouter...\n", err=True)
             async for token in router.stream(text):
                 click.echo(token, nl=False)
             click.echo()
@@ -62,14 +96,17 @@ def route(text: str, no_execute: bool, stream: bool, json_output: bool):
         if result.content:
             click.echo(f"\n--- Response ---\n{result.content}")
 
-    asyncio.run(_run())
+    try:
+        asyncio.run(_run())
+    except Exception as e:
+        _handle_error(e)
 
 
 @main.command()
 @click.argument("text")
 @click.option("--json-output", is_flag=True, help="Output full JSON bias scores.")
 def classify(text: str, json_output: bool):
-    """Run only the bias classifier (no LLM call). Free — uses gemma3n locally."""
+    """Run only the bias classifier (no LLM call). Free — runs locally."""
 
     async def _run():
         router = _get_router()
@@ -87,7 +124,10 @@ def classify(text: str, json_output: bool):
         if note:
             click.echo(f"Note          : {note}")
 
-    asyncio.run(_run())
+    try:
+        asyncio.run(_run())
+    except Exception as e:
+        _handle_error(e)
 
 
 @main.command()
@@ -113,12 +153,14 @@ def serve(host: str, port: int, reload: bool):
         import uvicorn
     except ImportError:
         click.echo(
-            "uvicorn not installed. Run: pip install 'safetyrouter[serve]'", err=True
+            click.style("Error: ", fg="red", bold=True) +
+            "uvicorn not installed. Run: pip install 'safetyrouter[serve]'",
+            err=True
         )
         sys.exit(1)
 
     click.echo(f"Starting SafetyRouter server on http://{host}:{port}")
-    click.echo("Docs available at: http://localhost:{port}/docs\n")
+    click.echo(f"Docs available at: http://localhost:{port}/docs\n")
     uvicorn.run(
         "safetyrouter.server:app",
         host=host,
