@@ -2,6 +2,7 @@
 CLI for SafetyRouter.
 
 Usage:
+    safetyrouter setup                              # first-time setup
     safetyrouter route "Should women be engineers?"
     safetyrouter classify "text here"
     safetyrouter serve --port 8000
@@ -9,46 +10,112 @@ Usage:
 """
 import asyncio
 import json
+import os
+import platform
+import shutil
+import subprocess
 import sys
+import time
 
 import click
 
 from .config import SafetyRouterConfig
 from .router import SafetyRouter
 
-OLLAMA_ERROR_MSG = """
-Ollama is not running. SafetyRouter needs Ollama to classify bias locally.
+DEFAULT_MODEL = "gemma3n:e2b"
 
-Fix it in 2 steps:
-  1. Install Ollama:   https://ollama.com/download
-  2. Pull the model:   ollama pull gemma3n:e2b
-  3. Start Ollama:     ollama serve
-
-Then try again.
-"""
+OLLAMA_ERROR_MSG = (
+    "Ollama is not running.\n\n"
+    "  Run this to fix it:\n"
+    "  → safetyrouter setup\n\n"
+    "  Or start Ollama manually: ollama serve"
+)
 
 
 def _handle_error(e: Exception):
-    """Convert known exceptions into clean user-facing messages."""
     msg = str(e)
     if "Failed to connect to Ollama" in msg or "ConnectionError" in msg or "Connection refused" in msg:
-        click.echo(click.style("Error:", fg="red", bold=True) + OLLAMA_ERROR_MSG, err=True)
+        click.echo(click.style("Error: ", fg="red", bold=True) + OLLAMA_ERROR_MSG, err=True)
         sys.exit(1)
     if "OPENAI_API_KEY" in msg:
-        click.echo(click.style("Error: ", fg="red", bold=True) + "OPENAI_API_KEY not set.\nAdd it to your .env file or run: export OPENAI_API_KEY=sk-...", err=True)
+        click.echo(click.style("Error: ", fg="red", bold=True) + "OPENAI_API_KEY not set.\nRun: export OPENAI_API_KEY=sk-...", err=True)
         sys.exit(1)
     if "ANTHROPIC_API_KEY" in msg:
-        click.echo(click.style("Error: ", fg="red", bold=True) + "ANTHROPIC_API_KEY not set.\nAdd it to your .env file or run: export ANTHROPIC_API_KEY=sk-ant-...", err=True)
+        click.echo(click.style("Error: ", fg="red", bold=True) + "ANTHROPIC_API_KEY not set.\nRun: export ANTHROPIC_API_KEY=sk-ant-...", err=True)
         sys.exit(1)
     if "GOOGLE_API_KEY" in msg:
-        click.echo(click.style("Error: ", fg="red", bold=True) + "GOOGLE_API_KEY not set.\nAdd it to your .env file or run: export GOOGLE_API_KEY=AIza...", err=True)
+        click.echo(click.style("Error: ", fg="red", bold=True) + "GOOGLE_API_KEY not set.\nRun: export GOOGLE_API_KEY=AIza...", err=True)
         sys.exit(1)
     if "GROQ_API_KEY" in msg:
-        click.echo(click.style("Error: ", fg="red", bold=True) + "GROQ_API_KEY not set.\nAdd it to your .env file or run: export GROQ_API_KEY=gsk_...", err=True)
+        click.echo(click.style("Error: ", fg="red", bold=True) + "GROQ_API_KEY not set.\nRun: export GROQ_API_KEY=gsk_...", err=True)
         sys.exit(1)
-    # Generic fallback
     click.echo(click.style("Error: ", fg="red", bold=True) + msg, err=True)
     sys.exit(1)
+
+
+def _is_ollama_installed() -> bool:
+    return shutil.which("ollama") is not None
+
+
+def _is_ollama_running() -> bool:
+    try:
+        import httpx
+        r = httpx.get("http://localhost:11434", timeout=3)
+        return r.status_code == 200
+    except Exception:
+        return False
+
+
+def _install_ollama():
+    system = platform.system()
+    click.echo(click.style("  Installing Ollama...", fg="yellow"))
+
+    if system == "Darwin" or system == "Linux":
+        result = subprocess.run(
+            "curl -fsSL https://ollama.com/install.sh | sh",
+            shell=True,
+        )
+        if result.returncode != 0:
+            click.echo(click.style("  ✗ Auto-install failed.", fg="red"))
+            click.echo("  Please install manually: https://ollama.com/download")
+            sys.exit(1)
+    elif system == "Windows":
+        click.echo(click.style("  Windows detected.", fg="yellow"))
+        click.echo("  Please download and install Ollama from: https://ollama.com/download")
+        click.echo("  Then re-run: safetyrouter setup")
+        sys.exit(0)
+    else:
+        click.echo("  Unknown OS. Install Ollama manually: https://ollama.com/download")
+        sys.exit(1)
+
+    click.echo(click.style("  ✓ Ollama installed.", fg="green"))
+
+
+def _start_ollama():
+    click.echo(click.style("  Starting Ollama...", fg="yellow"))
+    subprocess.Popen(
+        ["ollama", "serve"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    # Wait for it to be ready
+    for _ in range(15):
+        time.sleep(1)
+        if _is_ollama_running():
+            click.echo(click.style("  ✓ Ollama is running.", fg="green"))
+            return
+    click.echo(click.style("  ✗ Ollama didn't start in time. Try running `ollama serve` manually.", fg="red"))
+    sys.exit(1)
+
+
+def _pull_model(model: str):
+    click.echo(click.style(f"  Pulling {model} (this may take a few minutes)...", fg="yellow"))
+    result = subprocess.run(["ollama", "pull", model])
+    if result.returncode != 0:
+        click.echo(click.style(f"  ✗ Failed to pull {model}.", fg="red"))
+        sys.exit(1)
+    click.echo(click.style(f"  ✓ {model} is ready.", fg="green"))
 
 
 def _get_router() -> SafetyRouter:
@@ -60,6 +127,44 @@ def _get_router() -> SafetyRouter:
 def main():
     """SafetyRouter — always get an unbiased answer."""
     pass
+
+
+@main.command()
+@click.option("--model", default=DEFAULT_MODEL, show_default=True, help="Ollama model to use as classifier.")
+def setup(model: str):
+    """First-time setup: installs Ollama, pulls the classifier model, and verifies everything works."""
+    click.echo(click.style("\nSafetyRouter Setup\n", bold=True) + "─" * 30)
+
+    # Step 1 — Ollama installed?
+    click.echo("\n[1/3] Checking Ollama installation...")
+    if _is_ollama_installed():
+        click.echo(click.style("  ✓ Ollama already installed.", fg="green"))
+    else:
+        _install_ollama()
+
+    # Step 2 — Ollama running?
+    click.echo("\n[2/3] Checking Ollama is running...")
+    if _is_ollama_running():
+        click.echo(click.style("  ✓ Ollama already running.", fg="green"))
+    else:
+        _start_ollama()
+
+    # Step 3 — Pull model
+    click.echo(f"\n[3/3] Pulling classifier model ({model})...")
+    result = subprocess.run(
+        ["ollama", "list"],
+        capture_output=True, text=True
+    )
+    if model in result.stdout:
+        click.echo(click.style(f"  ✓ {model} already pulled.", fg="green"))
+    else:
+        _pull_model(model)
+
+    # Done
+    click.echo(click.style("\n✓ Setup complete! SafetyRouter is ready to use.\n", fg="green", bold=True))
+    click.echo("Try it:")
+    click.echo(click.style('  safetyrouter classify "Women are worse drivers than men."', fg="cyan"))
+    click.echo(click.style('  safetyrouter route "Should people be judged by their race?"\n', fg="cyan"))
 
 
 @main.command()

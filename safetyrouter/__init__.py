@@ -16,7 +16,7 @@ from .config import SafetyRouterConfig
 from .models import BiasCategory, ModelProvider, RouteResponse
 from .router import SafetyRouter
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 __all__ = [
     "SafetyRouter",
     "SafetyRouterConfig",
