@@ -47,7 +47,7 @@ all = [
 safetyrouter = "safetyrouter.cli:main"
 
 [project.urls]
-Homepage = "https://rdxvicky.github.io/safetyrouter/"
+Homepage = "https://safety-router.com"
 Repository = "https://github.com/rdxvicky/safetyrouter"
 Issues = "https://github.com/rdxvicky/safetyrouter/issues"
 
