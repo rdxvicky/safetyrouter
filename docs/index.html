@@ -747,19 +747,37 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
 
     <!-- CLI -->
     <div class="tab-panel" id="panel-cli">
-<pre><span class="cm"># First-time setup — installs Ollama, starts it, pulls classifier model</span>
+<pre><span class="cm"># First-time setup — Ollama + classifier + API keys, all in one command</span>
 <span class="dollar">$</span> safetyrouter setup
 
   SafetyRouter Setup
   ──────────────────────────────
-  [1/3] Checking Ollama installation...
-        ✓ Ollama installed.
-  [2/3] Checking Ollama is running...
-        ✓ Ollama is running.
-  [3/3] Pulling classifier model (gemma3n:e2b)...
+  [1/4] Checking Ollama installation...
+        ✓ Ollama already installed.
+  [2/4] Checking Ollama is running...
+        ✓ Ollama already running.
+  [3/4] Pulling classifier model (gemma3n:e2b)...
         ✓ gemma3n:e2b is ready.
+  [4/4] Configure LLM provider API keys...
+        Keys saved to ~/.safetyrouter.env
+
+    OpenAI       key (sk-...): sk-proj-...
+    ✓ OpenAI key saved.
+    Anthropic    key (sk-ant-...):
+    — Anthropic skipped
+    Groq         key (gsk_...): gsk_live-...
+    ✓ Groq key saved.
 
   ✓ Setup complete! SafetyRouter is ready to use.
+
+<span class="cm"># Ollama outdated? Setup auto-updates and retries — no manual steps</span>
+  [3/4] Pulling classifier model (gemma3n:e2b)...
+        Error: requires a newer version of Ollama.
+
+        Ollama is outdated and cannot run gemma3n:e2b.
+        Update Ollama now? (recommended) [Y/n]: Y
+        ✓ Ollama updated.
+        ✓ gemma3n:e2b is ready.
 
 <span class="cm"># Route a prompt — bias classified + best model called</span>
 <span class="dollar">$</span> safetyrouter route <span class="st">"Is discrimination based on religion acceptable?"</span>
@@ -930,14 +948,24 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
         <pre style="font-size:0.8rem; line-height:1.8; padding:1.25rem;"><span style="color:var(--orange); font-weight:600;">SafetyRouter Setup</span>
 <span style="color:var(--text3);">──────────────────────────────</span>
 
-<span style="color:var(--text2);">[1/3] Checking Ollama installation...</span>
-      <span style="color:#4ade80;">✓ Ollama installed.</span>
+<span style="color:var(--text2);">[1/4] Checking Ollama installation...</span>
+      <span style="color:#4ade80;">✓ Ollama already installed.</span>
 
-<span style="color:var(--text2);">[2/3] Checking Ollama is running...</span>
-      <span style="color:#4ade80;">✓ Ollama is running.</span>
+<span style="color:var(--text2);">[2/4] Checking Ollama is running...</span>
+      <span style="color:#4ade80;">✓ Ollama already running.</span>
 
-<span style="color:var(--text2);">[3/3] Pulling classifier model (gemma3n:e2b)...</span>
+<span style="color:var(--text2);">[3/4] Pulling classifier model (gemma3n:e2b)...</span>
       <span style="color:#4ade80;">✓ gemma3n:e2b is ready.</span>
+
+<span style="color:var(--text2);">[4/4] Configure LLM provider API keys...</span>
+      <span style="color:var(--text3);">Keys saved to ~/.safetyrouter.env</span>
+
+  <span style="color:var(--text2);">OpenAI       key (sk-...):</span> <span style="color:#4ade80;">sk-proj-...</span>
+  <span style="color:#4ade80;">✓ OpenAI key saved.</span>
+  <span style="color:var(--text2);">Anthropic    key (sk-ant-...):</span> <span style="color:var(--text3);">[Enter]</span>
+  <span style="color:var(--text3);">— Anthropic skipped</span>
+  <span style="color:var(--text2);">Groq         key (gsk_...):</span> <span style="color:#4ade80;">gsk_live-...</span>
+  <span style="color:#4ade80;">✓ Groq key saved.</span>
 
 <span style="color:#4ade80; font-weight:600;">✓ Setup complete! SafetyRouter is ready.</span>
 
