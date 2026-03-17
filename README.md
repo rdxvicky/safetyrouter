@@ -1,8 +1,8 @@
 # SafetyRouter
 
-**A framework for unbiased LLM responses** — automatically detects the type of bias in a prompt, then routes it to the model best equipped to handle that bias category without prejudice.
+**A Safety-Aware LLM Routing Framework** — detects bias type and mental health risk locally, routes to the model best equipped for that category, and escalates to human crisis services when needed.
 
-No matter what you ask, SafetyRouter ensures the response comes from the model with the strongest track record for fairness in that specific domain.
+No matter what you ask, SafetyRouter ensures the response comes from the model with the strongest track record for fairness in that specific domain — and steps aside entirely when a human is the right answer.
 
 ---
 
@@ -12,30 +12,41 @@ No matter what you ask, SafetyRouter ensures the response comes from the model w
 User Prompt
     │
     ▼
-┌─────────────────────────────────────┐
-│  Local Bias Classifier              │  ← FREE, runs on your machine
-│                                     │
-│  gender: 0.92 ← highest             │
-│  race:   0.05                       │
-│  age:    0.01  ...                  │
-└──────────────┬──────────────────────┘
-               │ "gender"
-               ▼
-┌─────────────────────────────────────┐
-│  Routing Table                      │
-│  gender          → GPT-4   (90%)   │
-│  race            → Claude  (88%)   │
-│  disability      → Claude  (85%)   │
-│  sexual_orient.  → GPT-4   (91%)   │
-│  socioeconomic   → Gemini  (82%)   │
-│  age             → Mixtral (83%)   │
-│  nationality     → GPT-4   (87%)   │
-│  religion        → Claude  (84%)   │
-│  physical_appear → Mixtral (79%)   │
-└──────────────┬──────────────────────┘
-               │
-               ▼
-        Unbiased Response
+┌─────────────────────────────────────────┐
+│  Local Safety Classifier                │  ← FREE, runs on your machine
+│                                         │
+│  BIAS                                   │
+│    gender: 0.92 ← highest               │
+│    race:   0.05, age: 0.01, ...         │
+│                                         │
+│  MENTAL HEALTH                          │
+│    self_harm:          0.03             │
+│    severe_distress:    0.08             │
+│    existential_crisis: 0.04             │
+│    emotional_dependency: 0.11           │
+└────────┬─────────────────────┬──────────┘
+         │                     │
+         ▼                     ▼
+  self_harm ≥ 0.70?    distress/crisis ≥ 0.60?
+  EMERGENCY escalation  HELPLINE + LLM response
+  (skip LLM entirely)   (crisis line shown below response)
+         │
+         ▼  (below threshold — normal routing)
+┌─────────────────────────────────────────┐
+│  Routing Table                          │
+│  gender          → GPT-4   (90%)        │
+│  race            → Claude  (88%)        │
+│  disability      → Claude  (85%)        │
+│  sexual_orient.  → GPT-4   (91%)        │
+│  socioeconomic   → Gemini  (82%)        │
+│  age             → Mixtral (83%)        │
+│  nationality     → GPT-4   (87%)        │
+│  religion        → Claude  (84%)        │
+│  physical_appear → Mixtral (79%)        │
+└────────────────────┬────────────────────┘
+                     │
+                     ▼
+              Unbiased Response
 ```
 
 Accuracy scores reflect benchmark evaluation against bias-specific datasets. Community contributions to improve these mappings are welcome.
@@ -55,16 +66,31 @@ safetyrouter setup
 SafetyRouter Setup
 ──────────────────────────────
 
-[1/4] Checking Ollama installation...
+[1/5] Checking Ollama installation...
       ✓ Ollama already installed.
 
-[2/4] Checking Ollama is running...
+[2/5] Checking Ollama is running...
       ✓ Ollama already running.
 
-[3/4] Pulling classifier model (gemma3n:e2b)...
+[3/5] Pulling classifier model (gemma3n:e2b)...
       ✓ gemma3n:e2b is ready.
 
-[4/4] Configure LLM provider API keys...
+[4/5] A few quick questions to personalize your experience...
+
+  What should we call you? (press Enter to skip): Alex
+
+  Age range:
+    [1] Under 18    [2] 18–25    [3] 26–40
+    [4] 41–60       [5] 60+      [0] Prefer not to say
+
+  Country (for safety resources):
+  Enter country code or name: US
+  ✓ Crisis resources loaded for United States
+     Emergency  : 911
+     Crisis line: 988 — 988 Suicide & Crisis Lifeline
+     Web chat   : https://988lifeline.org/chat
+
+[5/5] Configure LLM provider API keys...
       Keys saved to ~/.safetyrouter.env
 
   OpenAI       key (sk-...): sk-proj-...
@@ -82,7 +108,7 @@ SafetyRouter Setup
 **Ollama outdated?** Setup detects it and offers to update in-place:
 
 ```
-[3/4] Pulling classifier model (gemma3n:e2b)...
+[3/5] Pulling classifier model (gemma3n:e2b)...
       Error: requires a newer version of Ollama.
 
       Ollama is outdated and cannot run gemma3n:e2b.
@@ -129,11 +155,28 @@ async def main():
 asyncio.run(main())
 ```
 
+**Check for crisis escalation:**
+
+```python
+response = await router.route(text)
+
+if response.escalation_type == "emergency":
+    # self_harm score ≥ 0.70 — LLM was skipped
+    print(response.escalation_message)          # emergency number + crisis line
+    print(response.session_transcript_path)     # ~/.safetyrouter/sessions/<ts>.json
+
+elif response.escalation_type == "helpline":
+    # distress score ≥ 0.60 — LLM responded, helpline appended
+    print(response.content)                     # LLM response
+    print(response.escalation_message)          # "Support line: 988 — ..."
+```
+
 **Dry run** (classify only, no API call):
 
 ```python
 result = await router.route("text here", execute=False)
-print(result.bias_category)   # Know the routing without spending tokens
+print(result.bias_category)          # know the routing without spending tokens
+print(result.mental_health_scores)   # {"self_harm": 0.02, "severe_distress": 0.07, ...}
 ```
 
 **Streaming**:
@@ -176,7 +219,7 @@ router = SafetyRouter(
 ### CLI
 
 ```bash
-# First-time setup (Ollama + classifier model + API keys)
+# First-time setup (Ollama + classifier model + user profile + API keys)
 safetyrouter setup
 
 # Skip the API key step
@@ -185,7 +228,7 @@ safetyrouter setup --skip-keys
 # Use a custom classifier model
 safetyrouter setup --model llama3.2
 
-# Route a prompt
+# Route a prompt (shows escalation UI when triggered)
 safetyrouter route "Is discrimination based on religion acceptable?"
 
 # Classify only (no API call — free)
@@ -197,11 +240,43 @@ safetyrouter inspect
 # Start HTTP server
 safetyrouter serve --port 8000
 
-# JSON output
+# JSON output (includes all escalation fields)
 safetyrouter route "text" --json-output
 
 # Stream response
 safetyrouter route "text" --stream
+```
+
+**Emergency escalation** displays a red crisis box with no LLM response:
+
+```
+┌─────────────────────────────────────────────────┐
+│  CRISIS SUPPORT                                 │
+│                                                 │
+│  Emergency : 911                                │
+│  Crisis    : 988 — 988 Suicide & Crisis Lifeline│
+│                                                 │
+│  Web chat  : https://988lifeline.org/chat       │
+│                                                 │
+│  You are not alone. Help is available now.      │
+└─────────────────────────────────────────────────┘
+
+  Session saved to ~/.safetyrouter/sessions/2026-03-17T14-22-01.json
+```
+
+**Helpline escalation** shows the LLM response with a subtle line at the bottom:
+
+```
+Bias Category : gender
+Confidence    : 92.00%
+Routed to     : gpt4
+...
+--- Response ---
+<LLM response here>
+
+───────────────────────────────────────────────────────
+  Support line: 988 — 988 Suicide & Crisis Lifeline | Chat: https://988lifeline.org/chat
+───────────────────────────────────────────────────────
 ```
 
 ---
@@ -220,8 +295,8 @@ uvicorn safetyrouter.server:app --host 0.0.0.0 --port 8000
 |--------|------|-------------|
 | `GET` | `/health` | Health check |
 | `GET` | `/routing-table` | Inspect routing config |
-| `POST` | `/route` | Route + call the best model |
-| `POST` | `/classify` | Classify bias only (no model call) |
+| `POST` | `/route` | Route + call the best model (includes escalation fields) |
+| `POST` | `/classify` | Classify bias + mental health only (no model call) |
 | `GET` | `/docs` | Interactive Swagger UI |
 
 ```bash
@@ -230,9 +305,10 @@ curl -X POST http://localhost:8000/route \
   -H "Content-Type: application/json" \
   -d '{"text": "Should people be judged by their race?"}'
 
-# Classify only
+# Classify only — returns bias scores + mental health scores + escalation_type
 curl -X POST http://localhost:8000/classify \
-  -d '{"text": "Women shouldn't vote."}'
+  -H "Content-Type: application/json" \
+  -d '{"text": "I feel like there is no point to anything."}'
 ```
 
 ---
@@ -249,24 +325,102 @@ docker run -p 8000:8000 \
 
 ---
 
+## Mental Health Safety & Crisis Escalation
+
+SafetyRouter includes a two-tier human escalation system that runs alongside bias detection at zero extra API cost.
+
+### How escalation works
+
+The local classifier scores four mental health risk signals on every request:
+
+| Signal | Description |
+|--------|-------------|
+| `self_harm` | Explicit mentions of self-harm, suicide, or wanting to die |
+| `severe_distress` | Expressions of hopelessness, despair, or overwhelming pain |
+| `existential_crisis` | Loss of purpose, meaninglessness, or reasons to live |
+| `emotional_dependency` | Unhealthy attachment, isolation, or emotional reliance |
+
+These scores trigger two escalation tiers:
+
+| Tier | Condition | Action |
+|------|-----------|--------|
+| **EMERGENCY** | `self_harm` ≥ 0.70 | LLM is skipped entirely. Red crisis box shown with emergency number + helpline. Session transcript saved. |
+| **HELPLINE** | `severe_distress` or `existential_crisis` ≥ 0.60 | LLM responds normally. Helpline number and webchat appended below response. |
+
+### Supported countries
+
+Crisis resources are built in for 15 countries:
+
+| Code | Country | Emergency | Crisis Line |
+|------|---------|-----------|-------------|
+| US | United States | 911 | 988 Suicide & Crisis Lifeline |
+| UK | United Kingdom | 999 | 116 123 (Samaritans) |
+| CA | Canada | 911 | 1-833-456-4566 (Crisis Services Canada) |
+| AU | Australia | 000 | 13 11 14 (Lifeline) |
+| IN | India | 112 | 9152987821 (iCall) |
+| NZ | New Zealand | 111 | 1737 (Need to Talk?) |
+| DE | Germany | 112 | 0800 111 0 111 (Telefonseelsorge) |
+| FR | France | 15 | 3114 |
+| JP | Japan | 119 | 0120-783-556 (Inochi no Denwa) |
+| BR | Brazil | 192 | 188 (CVV) |
+| MX | Mexico | 911 | 800 290 0024 (SAPTEL) |
+| ZA | South Africa | 10111 | 0800 567 567 (SADAG) |
+| SG | Singapore | 999 | 1800 221 4444 (SOS) |
+| IE | Ireland | 999 | 116 123 (Samaritans Ireland) |
+| MY | Malaysia | 999 | 015-4882 3500 (Befrienders KL) |
+
+Other countries fall back to a global helpline reference. PRs to add more countries are very welcome.
+
+### Session transcripts
+
+When EMERGENCY escalation fires, SafetyRouter saves a JSON transcript to `~/.safetyrouter/sessions/` with the user profile, mental health scores, and original text. This can be shared with a crisis counselor or support contact.
+
+### Thresholds
+
+Thresholds can be adjusted via environment variables or config:
+
+```env
+SR_SELF_HARM_THRESHOLD=0.70   # default — triggers EMERGENCY
+SR_HELPLINE_THRESHOLD=0.60    # default — triggers HELPLINE
+```
+
+```python
+config = SafetyRouterConfig(
+    self_harm_threshold=0.80,
+    helpline_threshold=0.65,
+)
+```
+
+---
+
 ## Configuration
 
 ### PyPI users
-Run `safetyrouter setup` — API keys are saved to `~/.safetyrouter.env` and loaded automatically. No manual configuration needed.
+Run `safetyrouter setup` — all settings are saved to `~/.safetyrouter.env` and loaded automatically.
 
 ### Developers / self-hosted
 Copy `.env.example` to `.env` in your project root:
 
 ```env
+# LLM Provider API keys
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_API_KEY=AIza...
 GROQ_API_KEY=gsk_...          # Free tier at console.groq.com
 
-# Classifier model — defaults to gemma3n:e2b, bring your own Ollama model
+# Classifier model — defaults to gemma3n:e2b
 CLASSIFIER_MODEL=gemma3n:e2b
 OPENAI_MODEL=gpt-4o
 ANTHROPIC_MODEL=claude-opus-4-6
+
+# User profile (set by `safetyrouter setup` or manually)
+SR_USER_NAME=Alex
+SR_USER_AGE_RANGE=18-25
+SR_USER_COUNTRY=US
+
+# Mental health escalation thresholds
+SR_SELF_HARM_THRESHOLD=0.70
+SR_HELPLINE_THRESHOLD=0.60
 ```
 
 Priority order: environment variables → local `.env` → `~/.safetyrouter.env`.
@@ -338,9 +492,10 @@ safetyrouter serve --reload
 
 Pull requests welcome! Areas we'd love help with:
 
+- **Crisis resource coverage** — add more countries to `safetyrouter/crisis.py`
 - **Better routing table** — improved benchmark accuracy scores, new bias categories
 - **New providers** — Cohere, Together.ai, Mistral API, Azure OpenAI
-- **Evaluation suite** — automated benchmarks to validate routing decisions
+- **Evaluation suite** — automated benchmarks to validate routing and escalation decisions
 - **Async Ollama** — true async support for the classifier
 - **Caching** — cache classification results for repeated prompts
 
@@ -357,6 +512,7 @@ Apache 2.0 — see [LICENSE](LICENSE).
 If you use SafetyRouter in research, please cite:
 
 ```
-SafetyRouter: A Scalable Bias Detection and Mitigation System
+SafetyRouter: A Safety-Aware LLM Routing Framework for Bias Detection,
+Mental Health Risk Detection, and Human Escalation
 https://github.com/rdxvicky/safetyrouter
 ```

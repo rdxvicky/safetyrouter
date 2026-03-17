@@ -4,12 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "safetyrouter"
-version = "0.1.6"
-description = "Bias-aware LLM routing framework that guarantees unbiased responses — classifies bias type locally at zero API cost, then routes to the best specialized model for that category"
+version = "0.2.0"
+description = "Safety-Aware LLM Routing Framework — Bias Detection + Mental Health Risk Detection + Human Escalation. Classifies locally at zero API cost, routes to the best specialized model, and escalates to crisis services when needed."
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "SafetyRouter Contributors" }]
-keywords = ["llm", "routing", "bias", "ai", "safety", "fairness", "gemma3n", "ollama"]
+keywords = ["llm", "routing", "bias", "ai", "safety", "fairness", "mental-health", "crisis", "gemma3n", "ollama"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

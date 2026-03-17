@@ -1,5 +1,5 @@
 """
-Bias classifier using gemma3n via Ollama.
+Bias + mental health classifier using gemma3n via Ollama.
 
 Runs entirely locally — no API keys required for classification.
 gemma3n is chosen for its strong multilingual reasoning and lightweight
@@ -13,37 +13,52 @@ import ollama
 
 logger = logging.getLogger(__name__)
 
-CLASSIFIER_SYSTEM_PROMPT = """You are a bias detection classifier. Analyze the given text and respond ONLY with a JSON object.
+CLASSIFIER_SYSTEM_PROMPT = """You are a safety classifier. Analyze the given text and respond ONLY with a JSON object.
 
-Assign probability scores (0.0 to 1.0) for each bias category based on how likely the text contains or relates to that type of bias.
+Assign probability scores (0.0 to 1.0) for bias categories AND mental health risk indicators.
 
 Return exactly this JSON structure:
 {
-  "demographic": {"probability": 0.0},
-  "age": {"probability": 0.0},
-  "physical_appearance": {"probability": 0.0},
-  "gender": {"probability": 0.0},
-  "disability": {"probability": 0.0},
-  "socioeconomic_status": {"probability": 0.0},
-  "religion": {"probability": 0.0},
-  "sexual_orientation": {"probability": 0.0},
-  "race": {"probability": 0.0},
-  "nationality": {"probability": 0.0},
-  "others": {"probability": 0.0},
-  "highest_probability_category": {"category": "<category_name>", "probability": 0.0},
+  "bias": {
+    "demographic": 0.0,
+    "age": 0.0,
+    "physical_appearance": 0.0,
+    "gender": 0.0,
+    "disability": 0.0,
+    "socioeconomic_status": 0.0,
+    "religion": 0.0,
+    "sexual_orientation": 0.0,
+    "race": 0.0,
+    "nationality": 0.0,
+    "others": 0.0
+  },
+  "mental_health": {
+    "emotional_dependency": 0.0,
+    "self_harm": 0.0,
+    "severe_distress": 0.0,
+    "existential_crisis": 0.0
+  },
+  "highest_probability_category": {"category": "<bias_category>", "probability": 0.0},
+  "highest_mental_health_risk": {"category": "<mental_health_category>", "probability": 0.0},
   "note": "<brief explanation under 20 words>"
 }
 
 Rules:
 - All probability values must be floats between 0.0 and 1.0
-- "highest_probability_category" must match the category with the highest score
-- If no clear bias is present, set all scores near 0 and use "others"
+- "highest_probability_category" must match the bias category with the highest score
+- "highest_mental_health_risk" must match the mental health category with the highest score
+- self_harm: assign high scores for explicit mentions of self-harm, suicide, or wanting to die
+- severe_distress: assign high scores for expressions of hopelessness, despair, or overwhelming pain
+- existential_crisis: assign high scores for loss of purpose, meaninglessness, or reasons to live
+- emotional_dependency: assign high scores for unhealthy attachment, isolation, or emotional reliance
+- If no clear bias is present, set all bias scores near 0
+- If no mental health risk is present, set all mental health scores near 0
 - Respond with JSON only — no markdown, no extra text"""
 
 
 class BiasClassifier:
     """
-    Local bias classifier powered by gemma3n via Ollama.
+    Local bias + mental health classifier powered by gemma3n via Ollama.
 
     Usage:
         classifier = BiasClassifier(model="gemma3n:e2b")
@@ -54,7 +69,7 @@ class BiasClassifier:
         self.model = model
 
     async def classify(self, text: str) -> Dict[str, Any]:
-        """Classify bias in text. Returns normalized probability scores."""
+        """Classify bias and mental health risk in text. Returns normalized scores."""
         logger.info(f"Classifying text with {self.model}: {text[:80]}...")
 
         response = ollama.chat(
@@ -78,32 +93,54 @@ class BiasClassifier:
         analysis = json.loads(raw)
         return self._normalize(analysis)
 
+    def _to_float(self, v: Any) -> float:
+        """Convert value to float, scaling 0–100 range to 0–1 if needed."""
+        f = float(v)
+        return f / 100.0 if f > 1.0 else f
+
     def _normalize(self, raw: Dict[str, Any]) -> Dict[str, Any]:
         """Ensure all probabilities are in [0, 1] float range."""
         result = {}
         for key, value in raw.items():
-            if isinstance(value, dict) and "probability" in value:
-                prob = float(value["probability"])
-                # Handle cases where the model returns 0–100 instead of 0–1
-                if prob > 1.0:
-                    prob = prob / 100.0
-                result[key] = {"probability": round(min(max(prob, 0.0), 1.0), 4)}
+            if key == "bias" and isinstance(value, dict):
+                result["bias"] = {
+                    cat: round(min(max(self._to_float(v), 0.0), 1.0), 4)
+                    for cat, v in value.items()
+                }
+            elif key == "mental_health" and isinstance(value, dict):
+                result["mental_health"] = {
+                    cat: round(min(max(self._to_float(v), 0.0), 1.0), 4)
+                    for cat, v in value.items()
+                }
             else:
                 result[key] = value
 
-        # Recalculate highest_probability_category to be safe
+        # Recalculate highest fields to be safe
         result["highest_probability_category"] = self._find_highest(result)
+        result["highest_mental_health_risk"] = self._find_highest_mental_health(result)
         return result
 
     def _find_highest(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
-        skip = {"highest_probability_category", "others", "note"}
+        """Find the bias category with the highest probability score."""
+        bias_scores = analysis.get("bias", {})
+        skip = {"others"}
         best_cat, best_prob = "others", 0.0
-        for cat, val in analysis.items():
+        for cat, prob in bias_scores.items():
             if cat in skip:
                 continue
-            if isinstance(val, dict) and "probability" in val:
-                prob = float(val["probability"])
-                if prob > best_prob:
-                    best_prob = prob
-                    best_cat = cat
+            p = float(prob)
+            if p > best_prob:
+                best_prob = p
+                best_cat = cat
+        return {"category": best_cat, "probability": round(best_prob, 4)}
+
+    def _find_highest_mental_health(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Find the mental health category with the highest risk score."""
+        mh_scores = analysis.get("mental_health", {})
+        best_cat, best_prob = "none", 0.0
+        for cat, prob in mh_scores.items():
+            p = float(prob)
+            if p > best_prob:
+                best_prob = p
+                best_cat = cat
         return {"category": best_cat, "probability": round(best_prob, 4)}

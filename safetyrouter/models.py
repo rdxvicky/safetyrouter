@@ -11,6 +11,12 @@ class ModelProvider(str, Enum):
     OLLAMA = "ollama"
 
 
+class EscalationType(str, Enum):
+    NONE = "none"
+    HELPLINE = "helpline"
+    EMERGENCY = "emergency"
+
+
 class BiasCategory(Enum):
     """
     Each entry: (category_key, best_provider, benchmark_accuracy_pct)
@@ -44,24 +50,25 @@ class BiasCategory(Enum):
 
 # --- Pydantic response models ---
 
-class BiasCategoryScore(BaseModel):
-    probability: float
+class MentalHealthScores(BaseModel):
+    emotional_dependency: float = 0.0
+    self_harm: float = 0.0
+    severe_distress: float = 0.0
+    existential_crisis: float = 0.0
 
 
 class BiasAnalysis(BaseModel):
-    demographic: BiasCategoryScore
-    age: BiasCategoryScore
-    physical_appearance: BiasCategoryScore
-    gender: BiasCategoryScore
-    disability: BiasCategoryScore
-    socioeconomic_status: BiasCategoryScore
-    religion: BiasCategoryScore
-    sexual_orientation: BiasCategoryScore
-    race: BiasCategoryScore
-    nationality: BiasCategoryScore
-    others: BiasCategoryScore
+    bias: Dict[str, float]
+    mental_health: MentalHealthScores
     highest_probability_category: Dict[str, Any]
+    highest_mental_health_risk: Dict[str, Any]
     note: str
+
+
+class UserProfile(BaseModel):
+    name: Optional[str] = None
+    age_range: Optional[str] = None
+    country: str = "US"
 
 
 class RouteResponse(BaseModel):
@@ -74,6 +81,14 @@ class RouteResponse(BaseModel):
     content: Optional[str] = None
     response_time: float
     bias_analysis: Dict[str, Any]
+    # Mental health + escalation fields
+    mental_health_scores: Optional[dict] = None
+    escalation_type: Optional[str] = None
+    escalation_number: Optional[str] = None
+    escalation_service: Optional[str] = None
+    escalation_webchat: Optional[str] = None
+    escalation_message: Optional[str] = None
+    session_transcript_path: Optional[str] = None
 
 
 # --- FastAPI-specific models ---
@@ -96,3 +111,10 @@ class RoutingResponse(BaseModel):
     routing_decision: RoutingDecision
     bias_analysis: Dict[str, Any]
     response_time: str
+    mental_health_scores: Optional[dict] = None
+    escalation_type: Optional[str] = None
+    escalation_number: Optional[str] = None
+    escalation_service: Optional[str] = None
+    escalation_webchat: Optional[str] = None
+    escalation_message: Optional[str] = None
+    session_transcript_path: Optional[str] = None

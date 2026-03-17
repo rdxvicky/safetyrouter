@@ -43,6 +43,19 @@ class SafetyRouterConfig:
     # Format: {"gender": "gpt4", "race": "claude", ...}
     custom_routing: Dict[str, str] = field(default_factory=dict)
 
+    # User profile (for age-aware responses and country-specific crisis resources)
+    user_name: Optional[str] = field(default_factory=lambda: os.getenv("SR_USER_NAME"))
+    user_age_range: Optional[str] = field(default_factory=lambda: os.getenv("SR_USER_AGE_RANGE"))
+    user_country: str = field(default_factory=lambda: os.getenv("SR_USER_COUNTRY", "US"))
+
+    # Mental health escalation thresholds
+    self_harm_threshold: float = field(
+        default_factory=lambda: float(os.getenv("SR_SELF_HARM_THRESHOLD", "0.70"))
+    )
+    helpline_threshold: float = field(
+        default_factory=lambda: float(os.getenv("SR_HELPLINE_THRESHOLD", "0.60"))
+    )
+
     @classmethod
     def from_env(cls) -> "SafetyRouterConfig":
         return cls()

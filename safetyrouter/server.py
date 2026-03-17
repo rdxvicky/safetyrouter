@@ -19,8 +19,12 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="SafetyRouter",
-    description="Bias-aware LLM router: detects bias type with gemma3n, routes to the best specialized model.",
-    version="0.1.0",
+    description=(
+        "Safety-Aware LLM Router: Bias Detection + Mental Health Risk Detection + Human Escalation. "
+        "Classifies bias type and mental health risk locally at zero API cost, "
+        "then routes to the best specialized model or escalates to crisis services."
+    ),
+    version="0.2.0",
 )
 
 _router: SafetyRouter | None = None
@@ -47,8 +51,10 @@ async def routing_table():
 @app.post("/route", response_model=RoutingResponse)
 async def route(input_data: TextInput):
     """
-    Classify bias in text and route to the best LLM.
+    Classify bias + mental health risk in text and route to the best LLM.
 
+    If self-harm risk is high, returns emergency escalation info instead of LLM response.
+    If distress/crisis risk is elevated, returns LLM response plus helpline info.
     Set `stream: true` to get a streaming response instead.
     """
     try:
@@ -74,6 +80,13 @@ async def route(input_data: TextInput):
             ),
             bias_analysis=result.bias_analysis,
             response_time=f"{result.response_time:.3f}s",
+            mental_health_scores=result.mental_health_scores,
+            escalation_type=result.escalation_type,
+            escalation_number=result.escalation_number,
+            escalation_service=result.escalation_service,
+            escalation_webchat=result.escalation_webchat,
+            escalation_message=result.escalation_message,
+            session_transcript_path=result.session_transcript_path,
         )
 
     except ValueError as e:
@@ -86,7 +99,7 @@ async def route(input_data: TextInput):
 @app.post("/classify")
 async def classify_only(input_data: TextInput):
     """
-    Only run the bias classifier — no LLM call.
+    Only run the bias + mental health classifier — no LLM call.
     Useful for inspecting which model would be selected without incurring API costs.
     """
     try:
@@ -97,6 +110,8 @@ async def classify_only(input_data: TextInput):
             "confidence": result.confidence,
             "model_accuracy": result.model_accuracy,
             "bias_analysis": result.bias_analysis,
+            "mental_health_scores": result.mental_health_scores,
+            "escalation_type": result.escalation_type,
         }
     except Exception as e:
         logger.exception("Classification failed")
@@ -106,5 +121,5 @@ async def classify_only(input_data: TextInput):
 @app.on_event("startup")
 async def startup():
     logger.info(
-        f"SafetyRouter started — classifier: {get_router().config.classifier_model}"
+        f"SafetyRouter v0.2.0 started — classifier: {get_router().config.classifier_model}"
     )

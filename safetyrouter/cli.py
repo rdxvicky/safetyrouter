@@ -20,6 +20,12 @@ import time
 import click
 
 from .config import SafetyRouterConfig
+from .crisis import (
+    COUNTRY_CODE_TO_NAME,
+    CRISIS_DB,
+    get_crisis_resources,
+    normalize_country_code,
+)
 from .router import SafetyRouter
 
 DEFAULT_MODEL = "gemma3n:e2b"
@@ -39,6 +45,14 @@ PROVIDERS = [
     ("ANTHROPIC_API_KEY", "Anthropic", "Claude",  "sk-ant-..."),
     ("GOOGLE_API_KEY",    "Google",    "Gemini",  "AIza..."),
     ("GROQ_API_KEY",      "Groq",      "Mixtral", "gsk_...  (free tier: console.groq.com)"),
+]
+
+AGE_RANGES = [
+    ("Under 18", "Under 18"),
+    ("18-25",    "18–25"),
+    ("26-40",    "26–40"),
+    ("41-60",    "41–60"),
+    ("60+",      "60+"),
 ]
 
 OLLAMA_ERROR_MSG = (
@@ -263,11 +277,94 @@ def _pull_model(model: str) -> str:
     return model
 
 
+# ── User profile setup ─────────────────────────────────────────────────────
+
+def _setup_user_profile():
+    """Interactive user profile configuration. Saved to ~/.safetyrouter.env."""
+    click.echo("\n[4/5] A few quick questions to personalize your experience...")
+    click.echo("      (Press Enter to skip any question)\n")
+
+    global_cfg = _read_global_config()
+    to_save = {}
+
+    # Name
+    existing_name = global_cfg.get("SR_USER_NAME", "")
+    if existing_name:
+        click.echo(click.style(f"  ✓ Name already set: {existing_name}", fg="green"))
+    else:
+        name = click.prompt("  What should we call you?", default="", show_default=False)
+        if name.strip():
+            to_save["SR_USER_NAME"] = name.strip()
+            click.echo(click.style(f"  ✓ Got it, {name.strip()}.", fg="green"))
+
+    # Age range
+    click.echo()
+    existing_age = global_cfg.get("SR_USER_AGE_RANGE", "")
+    if existing_age:
+        click.echo(click.style(f"  ✓ Age range already set: {existing_age}", fg="green"))
+    else:
+        click.echo("  Age range:")
+        for i, (key, label) in enumerate(AGE_RANGES, 1):
+            click.echo(f"    [{i}] {label}")
+        click.echo(f"    [0] Prefer not to say")
+        click.echo()
+
+        age_choice = click.prompt(
+            "  Choice",
+            type=click.IntRange(0, len(AGE_RANGES)),
+            default=0,
+            show_default=False,
+        )
+        if age_choice > 0:
+            age_key = AGE_RANGES[age_choice - 1][0]
+            to_save["SR_USER_AGE_RANGE"] = age_key
+            click.echo(click.style(f"  ✓ Age range set to {AGE_RANGES[age_choice - 1][1]}.", fg="green"))
+
+    # Country
+    click.echo()
+    existing_country = global_cfg.get("SR_USER_COUNTRY", "")
+    if existing_country:
+        country_name = COUNTRY_CODE_TO_NAME.get(existing_country, existing_country)
+        click.echo(click.style(f"  ✓ Country already set: {country_name} ({existing_country})", fg="green"))
+    else:
+        supported = ", ".join(k for k in CRISIS_DB if k != "_DEFAULT")
+        click.echo(f"  Country (for safety resources):")
+        click.echo(f"  Supported codes: {supported}")
+        click.echo()
+
+        country_input = click.prompt(
+            "  Country code or name",
+            default="US",
+            show_default=True,
+        )
+        code = normalize_country_code(country_input)
+        resources = get_crisis_resources(code)
+        country_name = COUNTRY_CODE_TO_NAME.get(code, code)
+
+        if resources == get_crisis_resources("_DEFAULT") and code not in CRISIS_DB:
+            click.echo(click.style(
+                f"  — Country '{code}' not in database. Using global fallback resources.",
+                fg="yellow",
+            ))
+        else:
+            click.echo(click.style(f"  ✓ Crisis resources loaded for {country_name}", fg="green"))
+
+        click.echo(f"     Emergency  : {resources['emergency']}")
+        click.echo(f"     Crisis line: {resources['helpline']} — {resources['helpline_name']}")
+        if resources.get("webchat"):
+            click.echo(f"     Web chat   : {resources['webchat']}")
+
+        to_save["SR_USER_COUNTRY"] = code
+
+    if to_save:
+        _save_global_config(to_save)
+
+
 # ── API key setup ──────────────────────────────────────────────────────────
 
 def _setup_api_keys():
     """Interactive API key configuration. Keys saved to ~/.safetyrouter.env."""
-    click.echo("\n[4/4] Configure LLM provider API keys...")
+    click.echo("\n[5/5] Configure LLM provider API keys...")
     click.echo("      Keys are saved to ~/.safetyrouter.env and loaded automatically.\n")
 
     global_cfg = _read_global_config()
@@ -304,7 +401,7 @@ def _get_router() -> SafetyRouter:
 @click.group()
 @click.version_option(package_name="safetyrouter")
 def main():
-    """SafetyRouter — always get an unbiased answer."""
+    """SafetyRouter — Safety-Aware LLM Routing with bias detection and mental health escalation."""
     pass
 
 
@@ -316,28 +413,31 @@ def setup(model: str, skip_keys: bool):
     click.echo(click.style("\nSafetyRouter Setup\n", bold=True) + "─" * 30)
 
     # Step 1 — Ollama installed?
-    click.echo("\n[1/4] Checking Ollama installation...")
+    click.echo("\n[1/5] Checking Ollama installation...")
     if _is_ollama_installed():
         click.echo(click.style("  ✓ Ollama already installed.", fg="green"))
     else:
         _install_ollama()
 
     # Step 2 — Ollama running?
-    click.echo("\n[2/4] Checking Ollama is running...")
+    click.echo("\n[2/5] Checking Ollama is running...")
     if _is_ollama_running():
         click.echo(click.style("  ✓ Ollama already running.", fg="green"))
     else:
         _start_ollama()
 
     # Step 3 — Pull model
-    click.echo(f"\n[3/4] Pulling classifier model ({model})...")
+    click.echo(f"\n[3/5] Pulling classifier model ({model})...")
     result = subprocess.run(["ollama", "list"], capture_output=True, text=True)
     if model in result.stdout:
         click.echo(click.style(f"  ✓ {model} already pulled.", fg="green"))
     else:
         _pull_model(model)
 
-    # Step 4 — API keys
+    # Step 4 — User profile
+    _setup_user_profile()
+
+    # Step 5 — API keys
     if not skip_keys:
         _setup_api_keys()
 
@@ -372,6 +472,30 @@ def route(text: str, no_execute: bool, stream: bool, json_output: bool):
             click.echo(result.model_dump_json(indent=2))
             return
 
+        # Emergency escalation — show red box, no LLM response
+        if result.escalation_type == "emergency":
+            click.echo()
+            click.echo(click.style("┌─────────────────────────────────────────────────┐", fg="red", bold=True))
+            click.echo(click.style("│  CRISIS SUPPORT                                 │", fg="red", bold=True))
+            click.echo(click.style("│                                                 │", fg="red", bold=True))
+            if result.escalation_number:
+                click.echo(click.style(f"│  Emergency : {result.escalation_number:<36}│", fg="red", bold=True))
+            if result.escalation_service and result.escalation_number:
+                click.echo(click.style(f"│  Crisis    : {result.escalation_number} — {result.escalation_service}", fg="red", bold=True))
+                click.echo(click.style("│", fg="red", bold=True))
+            if result.escalation_webchat:
+                click.echo(click.style(f"│  Web chat  : {result.escalation_webchat}", fg="red", bold=True))
+                click.echo(click.style("│", fg="red", bold=True))
+            click.echo(click.style("│  You are not alone. Help is available now.      │", fg="red", bold=True))
+            click.echo(click.style("└─────────────────────────────────────────────────┘", fg="red", bold=True))
+            if result.session_transcript_path:
+                click.echo(click.style(
+                    f"\n  Session saved to {result.session_transcript_path}",
+                    fg="bright_black",
+                ))
+            return
+
+        # Normal or helpline response
         click.echo(f"\nBias Category : {result.bias_category}")
         click.echo(f"Confidence    : {result.confidence:.2%}")
         click.echo(f"Routed to     : {result.selected_model}")
@@ -381,6 +505,13 @@ def route(text: str, no_execute: bool, stream: bool, json_output: bool):
         click.echo(f"Response Time : {result.response_time}s")
         if result.content:
             click.echo(f"\n--- Response ---\n{result.content}")
+
+        # Helpline tier — subtle note at bottom
+        if result.escalation_type == "helpline" and result.escalation_message:
+            click.echo()
+            click.echo(click.style("─" * 55, fg="yellow"))
+            click.echo(click.style(f"  {result.escalation_message}", fg="yellow"))
+            click.echo(click.style("─" * 55, fg="yellow"))
 
     try:
         asyncio.run(_run())
@@ -392,7 +523,7 @@ def route(text: str, no_execute: bool, stream: bool, json_output: bool):
 @click.argument("text")
 @click.option("--json-output", is_flag=True, help="Output full JSON bias scores.")
 def classify(text: str, json_output: bool):
-    """Run only the bias classifier (no LLM call). Free — runs locally."""
+    """Run only the bias + mental health classifier (no LLM call). Free — runs locally."""
 
     async def _run():
         router = _get_router()
@@ -403,9 +534,17 @@ def classify(text: str, json_output: bool):
             return
 
         highest = result.bias_analysis.get("highest_probability_category", {})
-        click.echo(f"\nTop category  : {highest.get('category', 'unknown')}")
+        click.echo(f"\nTop bias      : {highest.get('category', 'unknown')}")
         click.echo(f"Confidence    : {float(highest.get('probability', 0)):.2%}")
         click.echo(f"Would route to: {result.selected_model}")
+
+        mh_highest = result.bias_analysis.get("highest_mental_health_risk", {})
+        if mh_highest and float(mh_highest.get("probability", 0)) > 0.01:
+            click.echo(f"MH Risk       : {mh_highest.get('category', 'none')} ({float(mh_highest.get('probability', 0)):.2%})")
+
+        if result.escalation_type:
+            click.echo(f"Escalation    : {result.escalation_type.upper()}")
+
         note = result.bias_analysis.get("note", "")
         if note:
             click.echo(f"Note          : {note}")
