@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SafetyRouter — Always get an unbiased answer</title>
-  <meta name="description" content="Bias-aware LLM routing framework. Classifies bias type locally at zero API cost, then routes to the best specialized model for that category." />
+  <title>SafetyRouter — Safety-Aware LLM Routing</title>
+  <meta name="description" content="Safety-Aware LLM Routing Framework. Bias Detection + Mental Health Risk Detection + Human Escalation. Classifies locally at zero API cost, routes to the best model, escalates to crisis services when needed." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
@@ -16,6 +16,14 @@
       --orange-dim:    #ea580c;
       --orange-glow:   rgba(249,115,22,0.15);
       --orange-border: rgba(249,115,22,0.3);
+      --red:           #ef4444;
+      --red-light:     #f87171;
+      --red-glow:      rgba(239,68,68,0.12);
+      --red-border:    rgba(239,68,68,0.3);
+      --yellow:        #eab308;
+      --yellow-glow:   rgba(234,179,8,0.12);
+      --yellow-border: rgba(234,179,8,0.3);
+      --green:         #4ade80;
       --bg:            #080808;
       --bg2:           #101010;
       --bg3:           #161616;
@@ -115,6 +123,19 @@
       animation: pulse 2s ease-in-out infinite;
     }
 
+    .new-badge {
+      display: inline-flex; align-items: center;
+      padding: 0.15rem 0.55rem;
+      border-radius: 4px;
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: var(--red-glow);
+      border: 1px solid var(--red-border);
+      color: var(--red-light);
+      vertical-align: middle;
+      margin-left: 0.35rem;
+    }
+
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50%       { opacity: 0.4; }
@@ -134,10 +155,28 @@
     .hero-sub {
       font-size: clamp(1rem, 2vw, 1.15rem);
       color: var(--text2);
-      max-width: 520px;
+      max-width: 560px;
       line-height: 1.7;
-      margin-bottom: 2.5rem;
+      margin-bottom: 2rem;
     }
+
+    .hero-pillars {
+      display: flex; align-items: center; gap: 0.5rem;
+      flex-wrap: wrap; justify-content: center;
+      margin-bottom: 2.5rem;
+      font-size: 0.82rem; color: var(--text3);
+    }
+
+    .hero-pillar {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.3rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text2);
+      background: var(--bg3);
+    }
+
+    .hero-pillar-dot { width: 6px; height: 6px; border-radius: 50%; }
 
     .hero-ctas {
       display: flex; align-items: center; gap: 1rem;
@@ -204,7 +243,7 @@
     .copy-btn:hover { border-color: var(--orange-border); color: var(--orange); }
     .copy-btn.copied { color: #4ade80; border-color: rgba(74,222,128,0.3); }
 
-    /* ── FLOW DIAGRAM ── */
+    /* ── SECTIONS ── */
     .section { padding: 5rem 1.5rem; max-width: 1000px; margin: 0 auto; }
 
     .section-label {
@@ -225,6 +264,7 @@
       margin-bottom: 3rem;
     }
 
+    /* ── FLOW DIAGRAM ── */
     .flow {
       display: flex; align-items: center;
       gap: 0; flex-wrap: wrap;
@@ -261,6 +301,62 @@
       font-size: 1.2rem;
       padding: 0 0.5rem;
       flex-shrink: 0;
+    }
+
+    /* ── ESCALATION SECTION ── */
+    .escalation-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .escalation-card {
+      padding: 1.5rem;
+      border-radius: 12px;
+      border: 1px solid;
+    }
+
+    .escalation-card.emergency {
+      background: var(--red-glow);
+      border-color: var(--red-border);
+    }
+
+    .escalation-card.helpline {
+      background: var(--yellow-glow);
+      border-color: var(--yellow-border);
+    }
+
+    .escalation-tier {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 0.5rem;
+    }
+
+    .escalation-card.emergency .escalation-tier { color: var(--red-light); }
+    .escalation-card.helpline  .escalation-tier { color: var(--yellow); }
+
+    .escalation-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .escalation-trigger {
+      font-size: 0.78rem; color: var(--text2); margin-bottom: 1rem;
+      font-family: var(--mono);
+      padding: 0.4rem 0.7rem;
+      background: rgba(0,0,0,0.3);
+      border-radius: 5px;
+      display: inline-block;
+    }
+    .escalation-action { font-size: 0.83rem; color: var(--text2); line-height: 1.6; }
+    .escalation-action strong { color: var(--text); }
+
+    .country-chips {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+    }
+
+    .country-chip {
+      padding: 0.25rem 0.7rem;
+      border-radius: 5px;
+      font-size: 0.78rem; font-family: var(--mono);
+      background: var(--bg3); border: 1px solid var(--border);
+      color: var(--text2);
     }
 
     /* ── ROUTING TABLE ── */
@@ -371,12 +467,12 @@
       color: #e4e4e7;
     }
 
-    .kw  { color: #fb923c; }   /* keyword — orange */
-    .fn  { color: #fbbf24; }   /* function — amber */
-    .st  { color: #86efac; }   /* string — green */
-    .cm  { color: #52525b; font-style: italic; } /* comment */
-    .nm  { color: #93c5fd; }   /* name/var — blue */
-    .op  { color: #f4f4f5; }   /* operator */
+    .kw  { color: #fb923c; }
+    .fn  { color: #fbbf24; }
+    .st  { color: #86efac; }
+    .cm  { color: #52525b; font-style: italic; }
+    .nm  { color: #93c5fd; }
+    .op  { color: #f4f4f5; }
 
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
@@ -397,6 +493,7 @@
     }
 
     .feature-card:hover { border-color: var(--orange-border); transform: translateY(-2px); }
+    .feature-card.highlight { border-color: var(--orange-border); background: var(--bg3); }
 
     .feature-icon {
       font-size: 1.5rem; margin-bottom: 0.85rem;
@@ -478,54 +575,44 @@
     @media (max-width: 768px) {
       .section { padding: 3.5rem 1.25rem; }
       .flow-step { width: 160px; }
+      .escalation-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 640px) {
-      /* Nav — hide text links on small screens, keep logo + GitHub */
       nav { padding: 0 1rem; }
       .nav-links a:not(.nav-github) { display: none; }
 
-      /* Hero */
       .hero { padding: 4rem 1rem 3rem; }
       .hero-ctas { flex-direction: column; width: 100%; }
       .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
       .install-strip { width: 100%; }
 
-      /* Sections */
       .section { padding: 3rem 1rem; }
       .section-sub { max-width: 100%; }
 
-      /* Flow */
       .flow { flex-direction: column; align-items: center; }
       .flow-step { width: 100%; max-width: 300px; }
       .flow-arrow { transform: rotate(90deg); }
 
-      /* Routing table — horizontal scroll */
       .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
       table { min-width: 460px; }
 
-      /* Code tabs — horizontal scroll, no wrap */
       .tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
       .tab { white-space: nowrap; flex-shrink: 0; padding: 0.45rem 0.75rem; font-size: 0.75rem; }
       pre { font-size: 0.76rem; padding: 1.1rem; }
 
-      /* Features — single column */
       .features { grid-template-columns: 1fr; }
 
-      /* Providers */
       .providers { gap: 0.5rem; }
       .provider-chip { font-size: 0.8rem; padding: 0.5rem 0.85rem; }
 
-      /* Install section two-column → stacked */
       .install-cols { flex-direction: column !important; }
       .install-col-commands,
       .install-col-output { min-width: unset !important; width: 100% !important; flex: unset !important; }
 
-      /* Install section */
       .install-section { padding: 3.5rem 1rem; }
       .cmd-line { font-size: 0.8rem; }
 
-      /* Footer */
       footer { flex-direction: column; align-items: flex-start; padding: 2rem 1rem; gap: 1rem; }
       .footer-links { gap: 1rem; flex-wrap: wrap; }
     }
@@ -546,6 +633,7 @@
   </a>
   <div class="nav-links">
     <a href="#how-it-works">How it works</a>
+    <a href="#crisis">Crisis Safety</a>
     <a href="#features">Features</a>
     <a href="#code">Docs</a>
     <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="nav-github">
@@ -559,15 +647,33 @@
 <section class="hero">
   <div class="badge">
     <div class="badge-dot"></div>
-    Open Source &nbsp;·&nbsp; v0.1.6 &nbsp;·&nbsp; Apache 2.0
+    Open Source &nbsp;·&nbsp; v0.2.0 &nbsp;·&nbsp; Apache 2.0
   </div>
 
-  <h1>Always get an<br/><span>unbiased answer.</span></h1>
+  <h1>Safety-Aware<br/><span>LLM Routing.</span></h1>
 
   <p class="hero-sub">
-    A framework that detects the type of bias in your prompt, then automatically
-    routes it to the model best equipped to respond fairly — every single time.
+    Detects bias type and mental health risk locally at zero API cost,
+    routes to the model best equipped to respond fairly,
+    and escalates to crisis services when a human is the right answer.
   </p>
+
+  <div class="hero-pillars">
+    <div class="hero-pillar">
+      <div class="hero-pillar-dot" style="background:var(--orange)"></div>
+      Bias Detection
+    </div>
+    <div style="color:var(--text3)">+</div>
+    <div class="hero-pillar">
+      <div class="hero-pillar-dot" style="background:var(--yellow)"></div>
+      Mental Health Risk
+    </div>
+    <div style="color:var(--text3)">+</div>
+    <div class="hero-pillar">
+      <div class="hero-pillar-dot" style="background:var(--red)"></div>
+      Human Escalation
+    </div>
+  </div>
 
   <div class="hero-ctas">
     <a href="#code" class="btn-primary">
@@ -593,10 +699,10 @@
 <!-- ── HOW IT WORKS ── -->
 <section class="section" id="how-it-works">
   <div class="section-label">How it works</div>
-  <h2 class="section-title">Three steps to a fairer answer</h2>
+  <h2 class="section-title">A safer path to a fairer answer</h2>
   <p class="section-sub">
-    SafetyRouter intercepts your prompt, identifies its bias profile locally,
-    and forwards it to the model with the highest benchmark accuracy for that category.
+    Every prompt is classified locally for both bias and mental health risk before
+    a single API call is made. The router then escalates or routes accordingly.
   </p>
 
   <div class="flow">
@@ -607,21 +713,79 @@
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step">
-      <div class="flow-icon">🔍</div>
-      <div class="flow-title">Bias Classified</div>
-      <div class="flow-desc">Local classifier scores 9 bias categories — zero API cost</div>
+      <div class="flow-icon">🛡️</div>
+      <div class="flow-title">Safety Classified</div>
+      <div class="flow-desc">9 bias + 4 mental health signals scored locally — zero API cost</div>
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step">
-      <div class="flow-icon">🧭</div>
-      <div class="flow-title">Best Model Selected</div>
-      <div class="flow-desc">Routing table picks the model with highest fairness score</div>
+      <div class="flow-icon">🔀</div>
+      <div class="flow-title">Smart Routing</div>
+      <div class="flow-desc">Escalates to crisis services, or routes to the best model for that bias</div>
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step">
       <div class="flow-icon">✅</div>
-      <div class="flow-title">Unbiased Response</div>
-      <div class="flow-desc">You receive the fairest answer, automatically</div>
+      <div class="flow-title">Safe Response</div>
+      <div class="flow-desc">Fair answer from the best model — or crisis resources if needed</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── CRISIS ESCALATION ── -->
+<section class="section" id="crisis">
+  <div class="section-label">Crisis Safety <span class="new-badge">New in v0.2.0</span></div>
+  <h2 class="section-title">Two-tier human escalation</h2>
+  <p class="section-sub">
+    When the mental health classifier detects risk, SafetyRouter steps aside.
+    Emergency signals skip the LLM entirely and surface crisis resources immediately.
+    All classification runs locally — no risk signals leave your machine.
+  </p>
+
+  <div class="escalation-grid">
+    <div class="escalation-card emergency">
+      <div class="escalation-tier">Tier 1 — Emergency</div>
+      <div class="escalation-title">LLM skipped entirely</div>
+      <div class="escalation-trigger">self_harm ≥ 0.70</div>
+      <div class="escalation-action">
+        <strong>No model is called.</strong> A red crisis box is shown with the
+        local emergency number and crisis helpline for the user's country.
+        Session transcript is saved to <code style="color:var(--orange-light);font-size:0.8em">~/.safetyrouter/sessions/</code>.
+      </div>
+    </div>
+    <div class="escalation-card helpline">
+      <div class="escalation-tier">Tier 2 — Helpline</div>
+      <div class="escalation-title">LLM responds + helpline appended</div>
+      <div class="escalation-trigger">severe_distress or existential_crisis ≥ 0.60</div>
+      <div class="escalation-action">
+        <strong>Normal routing proceeds.</strong> The LLM response is returned,
+        with the crisis helpline number and webchat link shown subtly below.
+        The user gets both a helpful answer and a path to human support.
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:1.5rem">
+    <div style="font-size:0.75rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text3); margin-bottom:0.85rem;">Built-in crisis resources for 15 countries</div>
+    <div class="country-chips">
+      <span class="country-chip">🇺🇸 US — 988</span>
+      <span class="country-chip">🇬🇧 UK — 116 123</span>
+      <span class="country-chip">🇨🇦 CA — 1-833-456-4566</span>
+      <span class="country-chip">🇦🇺 AU — 13 11 14</span>
+      <span class="country-chip">🇮🇳 IN — 9152987821</span>
+      <span class="country-chip">🇳🇿 NZ — 1737</span>
+      <span class="country-chip">🇩🇪 DE — 0800 111 0 111</span>
+      <span class="country-chip">🇫🇷 FR — 3114</span>
+      <span class="country-chip">🇯🇵 JP — 0120-783-556</span>
+      <span class="country-chip">🇧🇷 BR — 188</span>
+      <span class="country-chip">🇲🇽 MX — 800 290 0024</span>
+      <span class="country-chip">🇿🇦 ZA — 0800 567 567</span>
+      <span class="country-chip">🇸🇬 SG — 1800 221 4444</span>
+      <span class="country-chip">🇮🇪 IE — 116 123</span>
+      <span class="country-chip">🇲🇾 MY — 015-4882 3500</span>
+      <span class="country-chip" style="border-style:dashed;color:var(--text3)">+ PRs welcome</span>
     </div>
   </div>
 </section>
@@ -733,72 +897,82 @@
     <span class="fn">print</span>(<span class="nm">response</span>.confidence)      <span class="cm"># 0.92</span>
     <span class="fn">print</span>(<span class="nm">response</span>.content)         <span class="cm"># unbiased answer from GPT-4</span>
 
+<span class="cm"># Handle crisis escalation</span>
+<span class="kw">async def</span> <span class="fn">safe_route</span>(<span class="nm">text</span>):
+    <span class="nm">response</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="nm">text</span>)
+
+    <span class="kw">if</span> <span class="nm">response</span>.escalation_type <span class="op">==</span> <span class="st">"emergency"</span>:
+        <span class="cm"># LLM was skipped — show crisis resources only</span>
+        <span class="fn">print</span>(<span class="nm">response</span>.escalation_message)       <span class="cm"># emergency number + line</span>
+        <span class="fn">print</span>(<span class="nm">response</span>.session_transcript_path)  <span class="cm"># saved to ~/.safetyrouter/sessions/</span>
+
+    <span class="kw">elif</span> <span class="nm">response</span>.escalation_type <span class="op">==</span> <span class="st">"helpline"</span>:
+        <span class="cm"># LLM responded + helpline attached</span>
+        <span class="fn">print</span>(<span class="nm">response</span>.content)
+        <span class="fn">print</span>(<span class="nm">response</span>.escalation_message)       <span class="cm"># "Support line: 988 — ..."</span>
+
+    <span class="kw">else</span>:
+        <span class="fn">print</span>(<span class="nm">response</span>.content)
+
 <span class="cm"># Dry run — classify only, zero API cost</span>
 <span class="kw">async def</span> <span class="fn">inspect</span>():
     <span class="nm">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="st">"text"</span>, execute<span class="op">=</span><span class="kw">False</span>)
-    <span class="fn">print</span>(<span class="nm">result</span>.bias_category)  <span class="cm"># see routing without spending tokens</span>
-
-<span class="cm"># Streaming</span>
-<span class="kw">async for</span> <span class="nm">token</span> <span class="kw">in</span> <span class="nm">router</span>.<span class="fn">stream</span>(<span class="st">"Is age discrimination legal?"</span>):
-    <span class="fn">print</span>(<span class="nm">token</span>, end<span class="op">=</span><span class="st">""</span>, flush<span class="op">=</span><span class="kw">True</span>)
+    <span class="fn">print</span>(<span class="nm">result</span>.bias_category)         <span class="cm"># bias classification</span>
+    <span class="fn">print</span>(<span class="nm">result</span>.mental_health_scores)   <span class="cm"># {"self_harm": 0.02, ...}</span>
 
 asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
     </div>
 
     <!-- CLI -->
     <div class="tab-panel" id="panel-cli">
-<pre><span class="cm"># First-time setup — Ollama + classifier + API keys, all in one command</span>
+<pre><span class="cm"># First-time setup — Ollama + classifier + user profile + API keys</span>
 <span class="dollar">$</span> safetyrouter setup
 
   SafetyRouter Setup
   ──────────────────────────────
-  [1/4] Checking Ollama installation...
-        ✓ Ollama already installed.
-  [2/4] Checking Ollama is running...
-        ✓ Ollama already running.
-  [3/4] Pulling classifier model (gemma3n:e2b)...
-        ✓ gemma3n:e2b is ready.
-  [4/4] Configure LLM provider API keys...
-        Keys saved to ~/.safetyrouter.env
+  [1/5] Checking Ollama installation...
+        <span style="color:#4ade80">✓ Ollama already installed.</span>
+  [2/5] Checking Ollama is running...
+        <span style="color:#4ade80">✓ Ollama already running.</span>
+  [3/5] Pulling classifier model (gemma3n:e2b)...
+        <span style="color:#4ade80">✓ gemma3n:e2b is ready.</span>
 
-    OpenAI       key (sk-...): sk-proj-...
-    ✓ OpenAI key saved.
-    Anthropic    key (sk-ant-...):
-    — Anthropic skipped
-    Groq         key (gsk_...): gsk_live-...
-    ✓ Groq key saved.
+  [4/5] A few quick questions to personalize your experience...
 
-  ✓ Setup complete! SafetyRouter is ready to use.
+    What should we call you?: <span style="color:#4ade80">Alex</span>
 
-<span class="cm"># Ollama outdated? Setup auto-updates and retries — no manual steps</span>
-  [3/4] Pulling classifier model (gemma3n:e2b)...
-        Error: requires a newer version of Ollama.
+    Age range: [2] 18–25
 
-        Ollama is outdated and cannot run gemma3n:e2b.
-        Update Ollama now? (recommended) [Y/n]: Y
-        ✓ Ollama updated.
-        ✓ gemma3n:e2b is ready.
+    Country code or name: <span style="color:#4ade80">US</span>
+    <span style="color:#4ade80">✓ Crisis resources loaded for United States</span>
+       Emergency  : 911
+       Crisis line: 988 — 988 Suicide &amp; Crisis Lifeline
+       Web chat   : https://988lifeline.org/chat
 
-<span class="cm"># Route a prompt — bias classified + best model called</span>
-<span class="dollar">$</span> safetyrouter route <span class="st">"Is discrimination based on religion acceptable?"</span>
+  [5/5] Configure LLM provider API keys...
+        OpenAI key (sk-...): <span style="color:#4ade80">sk-proj-...</span>
+        <span style="color:#4ade80">✓ OpenAI key saved.</span>
 
-  Bias Category : religion
-  Confidence    : 87%
-  Routed to     : claude
-  Model Accuracy: 84%
+  <span style="color:#4ade80">✓ Setup complete! SafetyRouter is ready to use.</span>
 
-<span class="cm"># Classify only — free, no API call</span>
+<span class="cm"># Route — emergency escalation (no LLM response shown)</span>
+<span class="dollar">$</span> safetyrouter route <span class="st">"I want to hurt myself"</span>
+
+  ┌─────────────────────────────────────────────────┐
+  │  CRISIS SUPPORT                                 │
+  │  Emergency : 911                                │
+  │  Crisis    : 988 — 988 Suicide &amp; Crisis Lifeline│
+  │  Web chat  : https://988lifeline.org/chat       │
+  │  You are not alone. Help is available now.      │
+  └─────────────────────────────────────────────────┘
+
+<span class="cm"># Classify only — shows bias + mental health risk</span>
 <span class="dollar">$</span> safetyrouter classify <span class="st">"Women are worse drivers than men."</span>
 
-  Top category  : gender
+  Top bias      : gender
   Confidence    : 91%
   Would route to: gpt4
-
-<span class="cm"># Inspect the routing table</span>
-<span class="dollar">$</span> safetyrouter inspect
-
-<span class="cm"># Stream the response</span>
-<span class="dollar">$</span> safetyrouter route <span class="st">"text"</span> --stream</pre>
+  MH Risk       : none (0.00%)</pre>
     </div>
 
     <!-- HTTP -->
@@ -806,15 +980,19 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
 <pre><span class="cm"># Start the server</span>
 <span class="dollar">$</span> safetyrouter serve --port 8000
 
-<span class="cm"># Route a prompt</span>
+<span class="cm"># Route a prompt — escalation fields included in response</span>
 <span class="dollar">$</span> curl -X POST http://localhost:8000/route \
     -H <span class="st">"Content-Type: application/json"</span> \
     -d <span class="st">'{"text": "Should people be judged by their race?"}'</span>
 
-<span class="cm"># Classify only (no model call)</span>
+<span class="cm"># Classify only — returns bias + mental health scores + escalation_type</span>
 <span class="dollar">$</span> curl -X POST http://localhost:8000/classify \
     -H <span class="st">"Content-Type: application/json"</span> \
-    -d <span class="st">'{"text": "Women shouldn'\''t vote."}'</span>
+    -d <span class="st">'{"text": "I feel like there is no point to anything."}'</span>
+
+<span class="cm"># Response includes escalation fields:</span>
+<span class="cm"># escalation_type, escalation_number, escalation_service,</span>
+<span class="cm"># escalation_webchat, escalation_message, mental_health_scores</span>
 
 <span class="cm"># Inspect routing table</span>
 <span class="dollar">$</span> curl http://localhost:8000/routing-table
@@ -838,11 +1016,15 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
     }
 )
 
-<span class="cm"># Custom routing overrides</span>
+<span class="cm"># Custom routing + user profile for age-aware responses</span>
 <span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouterConfig</span>
 
 <span class="nm">config</span> <span class="op">=</span> <span class="fn">SafetyRouterConfig</span>(
-    custom_routing<span class="op">=</span>{<span class="st">"gender"</span>: <span class="st">"claude"</span>, <span class="st">"religion"</span>: <span class="st">"gemini"</span>}
+    custom_routing<span class="op">=</span>{<span class="st">"gender"</span>: <span class="st">"claude"</span>, <span class="st">"religion"</span>: <span class="st">"gemini"</span>},
+    user_country<span class="op">=</span><span class="st">"AU"</span>,        <span class="cm"># crisis resources for Australia</span>
+    user_age_range<span class="op">=</span><span class="st">"Under 18"</span>, <span class="cm"># youth-aware system prompts</span>
+    self_harm_threshold<span class="op">=</span><span class="nm">0.70</span>,  <span class="cm"># emergency threshold</span>
+    helpline_threshold<span class="op">=</span><span class="nm">0.60</span>,   <span class="cm"># helpline threshold</span>
 )
 <span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>(config<span class="op">=</span><span class="nm">config</span>)</pre>
     </div>
@@ -855,13 +1037,23 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
 <section class="section" id="features">
   <div class="section-label">Features</div>
   <h2 class="section-title">Built for developers</h2>
-  <p class="section-sub">Everything you need to integrate unbiased LLM responses into your app.</p>
+  <p class="section-sub">Everything you need to integrate safe, unbiased LLM responses into your app.</p>
 
   <div class="features">
+    <div class="feature-card highlight">
+      <div class="feature-icon">🧠</div>
+      <div class="feature-title">Mental health risk detection <span class="new-badge">New</span></div>
+      <div class="feature-desc">4 risk signals (self_harm, severe_distress, existential_crisis, emotional_dependency) scored on every request — locally, at zero extra cost.</div>
+    </div>
+    <div class="feature-card highlight">
+      <div class="feature-icon">🚨</div>
+      <div class="feature-title">Two-tier crisis escalation <span class="new-badge">New</span></div>
+      <div class="feature-desc">Emergency tier skips the LLM entirely and shows crisis resources. Helpline tier runs the LLM and appends support line info. 15 countries built in.</div>
+    </div>
     <div class="feature-card">
       <div class="feature-icon">⚡</div>
       <div class="feature-title">Zero API cost classification</div>
-      <div class="feature-desc">Bias detection runs entirely on your machine. No API calls, no cost, no data leaving your environment.</div>
+      <div class="feature-desc">All classification runs entirely on your machine via Ollama. No API calls, no cost, no data leaving your environment.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🎯</div>
@@ -886,7 +1078,7 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
     <div class="feature-card">
       <div class="feature-icon">🛠️</div>
       <div class="feature-title">Fully configurable</div>
-      <div class="feature-desc">Override any routing rule, swap models, add new bias categories — all via config or custom providers.</div>
+      <div class="feature-desc">Override routing rules, escalation thresholds, model choices, user profile — all via config or custom providers.</div>
     </div>
   </div>
 </section>
@@ -916,11 +1108,11 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
   <h2 class="section-title" style="text-align:center">Get started in 2 commands</h2>
   <p style="color:var(--text2); font-size:0.95rem; max-width:480px; margin: 0.5rem auto 0; line-height:1.7;">
     <code style="color:var(--orange); font-family:var(--mono)">safetyrouter setup</code> handles everything —
-    no manual Ollama configuration needed.
+    Ollama, classifier model, user profile, and API keys.
   </p>
 
   <!-- Two-column: commands left, output right -->
-  <div class="install-cols" style="display:flex; gap:1.5rem; margin-top:2.5rem; max-width:860px; margin-left:auto; margin-right:auto; flex-wrap:wrap; text-align:left;">
+  <div class="install-cols" style="display:flex; gap:1.5rem; margin-top:2.5rem; max-width:900px; margin-left:auto; margin-right:auto; flex-wrap:wrap; text-align:left;">
 
     <!-- Left: commands -->
     <div class="install-col-commands" style="flex:1; min-width:240px;">
@@ -945,33 +1137,32 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
           <div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
           <span class="code-lang">bash</span>
         </div>
-        <pre style="font-size:0.8rem; line-height:1.8; padding:1.25rem;"><span style="color:var(--orange); font-weight:600;">SafetyRouter Setup</span>
+        <pre style="font-size:0.78rem; line-height:1.8; padding:1.25rem;"><span style="color:var(--orange); font-weight:600;">SafetyRouter Setup</span>
 <span style="color:var(--text3);">──────────────────────────────</span>
 
-<span style="color:var(--text2);">[1/4] Checking Ollama installation...</span>
+<span style="color:var(--text2);">[1/5] Checking Ollama installation...</span>
       <span style="color:#4ade80;">✓ Ollama already installed.</span>
 
-<span style="color:var(--text2);">[2/4] Checking Ollama is running...</span>
+<span style="color:var(--text2);">[2/5] Checking Ollama is running...</span>
       <span style="color:#4ade80;">✓ Ollama already running.</span>
 
-<span style="color:var(--text2);">[3/4] Pulling classifier model (gemma3n:e2b)...</span>
+<span style="color:var(--text2);">[3/5] Pulling classifier model (gemma3n:e2b)...</span>
       <span style="color:#4ade80;">✓ gemma3n:e2b is ready.</span>
 
-<span style="color:var(--text2);">[4/4] Configure LLM provider API keys...</span>
-      <span style="color:var(--text3);">Keys saved to ~/.safetyrouter.env</span>
+<span style="color:var(--orange); font-weight:600;">[4/5] A few quick questions...</span>
 
-  <span style="color:var(--text2);">OpenAI       key (sk-...):</span> <span style="color:#4ade80;">sk-proj-...</span>
+  <span style="color:var(--text2);">What should we call you?:</span> <span style="color:#4ade80;">Alex</span>
+  <span style="color:var(--text2);">Age range:</span> <span style="color:#4ade80;">[2] 18–25</span>
+  <span style="color:var(--text2);">Country code or name:</span> <span style="color:#4ade80;">US</span>
+  <span style="color:#4ade80;">✓ Crisis resources loaded for United States</span>
+     Emergency  : 911
+     Crisis line: 988 — 988 Suicide &amp; Crisis Lifeline
+
+<span style="color:var(--text2);">[5/5] Configure LLM provider API keys...</span>
+  <span style="color:var(--text2);">OpenAI key (sk-...):</span> <span style="color:#4ade80;">sk-proj-...</span>
   <span style="color:#4ade80;">✓ OpenAI key saved.</span>
-  <span style="color:var(--text2);">Anthropic    key (sk-ant-...):</span> <span style="color:var(--text3);">[Enter]</span>
-  <span style="color:var(--text3);">— Anthropic skipped</span>
-  <span style="color:var(--text2);">Groq         key (gsk_...):</span> <span style="color:#4ade80;">gsk_live-...</span>
-  <span style="color:#4ade80;">✓ Groq key saved.</span>
 
-<span style="color:#4ade80; font-weight:600;">✓ Setup complete! SafetyRouter is ready.</span>
-
-<span style="color:var(--text3);">Try it:</span>
-<span style="color:var(--orange);">  safetyrouter classify "text here"</span>
-<span style="color:var(--orange);">  safetyrouter route "your prompt"</span></pre>
+<span style="color:#4ade80; font-weight:600;">✓ Setup complete! SafetyRouter is ready.</span></pre>
       </div>
     </div>
 
@@ -988,7 +1179,7 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
   <div class="footer-logo">
     <div class="nav-logo-dot"></div>
     SafetyRouter
-    <span style="color:var(--text3); font-weight:400; font-size:0.8rem; margin-left:0.5rem">v0.1.6</span>
+    <span style="color:var(--text3); font-weight:400; font-size:0.8rem; margin-left:0.5rem">v0.2.0</span>
   </div>
   <div class="footer-links">
     <a href="https://github.com/rdxvicky/safetyrouter" target="_blank">GitHub</a>
