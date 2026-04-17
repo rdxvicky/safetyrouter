@@ -797,8 +797,9 @@
   <div class="section-label">Routing Table</div>
   <h2 class="section-title">Every bias type has a specialist</h2>
   <p class="section-sub">
-    Routing decisions are backed by benchmark accuracy scores. The table is fully
-    configurable — bring your own mappings.
+    Routing decisions are backed by benchmark accuracy scores from the
+    <a href="https://github.com/rdxvicky/llm-bias-evaluator" target="_blank" style="color:var(--orange)">LLM Bias Evaluator</a>
+    — 270 samples across 9 categories. The table is fully configurable — bring your own mappings.
   </p>
 
   <div class="table-wrap">
@@ -812,49 +813,49 @@
       </thead>
       <tbody>
         <tr>
-          <td><span class="tag">sexual_orientation</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>GPT-4</span></td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:91%"></div></div><span class="acc-num">91%</span></div></td>
-        </tr>
-        <tr>
           <td><span class="tag">gender</span></td>
           <td><span class="model-badge"><span class="provider-dot"></span>GPT-4</span></td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:90%"></div></div><span class="acc-num">90%</span></div></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
+        </tr>
+        <tr>
+          <td><span class="tag">disability</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>GPT-4</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:100%"></div></div><span class="acc-num">100%</span></div></td>
+        </tr>
+        <tr>
+          <td><span class="tag">religion</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>GPT-4</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
         </tr>
         <tr>
           <td><span class="tag">race</span></td>
           <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:88%"></div></div><span class="acc-num">88%</span></div></td>
-        </tr>
-        <tr>
-          <td><span class="tag">nationality</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>GPT-4</span></td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:87%"></div></div><span class="acc-num">87%</span></div></td>
-        </tr>
-        <tr>
-          <td><span class="tag">disability</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:85%"></div></div><span class="acc-num">85%</span></div></td>
-        </tr>
-        <tr>
-          <td><span class="tag">religion</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:84%"></div></div><span class="acc-num">84%</span></div></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:83.3%"></div></div><span class="acc-num">83.3%</span></div></td>
         </tr>
         <tr>
           <td><span class="tag">age</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>Mixtral</span></td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:83%"></div></div><span class="acc-num">83%</span></div></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:100%"></div></div><span class="acc-num">100%</span></div></td>
+        </tr>
+        <tr>
+          <td><span class="tag">sexual_orientation</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:83.3%"></div></div><span class="acc-num">83.3%</span></div></td>
         </tr>
         <tr>
           <td><span class="tag">socioeconomic_status</span></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
+        </tr>
+        <tr>
+          <td><span class="tag">nationality</span></td>
           <td><span class="model-badge"><span class="provider-dot"></span>Gemini</span></td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:82%"></div></div><span class="acc-num">82%</span></div></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
         </tr>
         <tr>
           <td><span class="tag">physical_appearance</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>Mixtral</span></td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:79%"></div></div><span class="acc-num">79%</span></div></td>
+          <td><span class="model-badge"><span class="provider-dot"></span>Gemini</span></td>
+          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:100%"></div></div><span class="acc-num">100%</span></div></td>
         </tr>
       </tbody>
     </table>
