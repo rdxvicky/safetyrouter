@@ -34,15 +34,15 @@ User Prompt
          ▼  (below threshold — normal routing)
 ┌─────────────────────────────────────────┐
 │  Routing Table                          │
-│  gender          → GPT-4   (90%)        │
-│  race            → Claude  (88%)        │
-│  disability      → Claude  (85%)        │
-│  sexual_orient.  → GPT-4   (91%)        │
-│  socioeconomic   → Gemini  (82%)        │
-│  age             → Mixtral (83%)        │
-│  nationality     → GPT-4   (87%)        │
-│  religion        → Claude  (84%)        │
-│  physical_appear → Mixtral (79%)        │
+│  gender          → GPT-4   (96.7%)      │
+│  race            → Claude  (83.3%)      │
+│  disability      → GPT-4   (100.0%)     │
+│  sexual_orient.  → Claude  (83.3%)      │
+│  socioeconomic   → Claude  (96.7%)      │
+│  age             → Claude  (100.0%)     │
+│  nationality     → Gemini  (96.7%)      │
+│  religion        → GPT-4   (96.7%)      │
+│  physical_appear → Gemini  (100.0%)     │
 └────────────────────┬────────────────────┘
                      │
                      ▼
@@ -411,7 +411,7 @@ GROQ_API_KEY=gsk_...          # Free tier at console.groq.com
 # Classifier model — defaults to gemma3n:e2b
 CLASSIFIER_MODEL=gemma3n:e2b
 OPENAI_MODEL=gpt-4o
-ANTHROPIC_MODEL=claude-opus-4-6
+ANTHROPIC_MODEL=claude-opus-4-5-20251101
 
 # User profile (set by `safetyrouter setup` or manually)
 SR_USER_NAME=Alex
@@ -429,17 +429,21 @@ Priority order: environment variables → local `.env` → `~/.safetyrouter.env`
 
 ## Routing Table
 
+Derived from the [LLM Bias Evaluator](https://github.com/rdxvicky/llm-bias-evaluator) — 270 samples across 9 categories (StereoSet, CrowS-Pairs, BBQ, HolisticBias, BOLD).
+
 | Bias Category | Best Model | Accuracy |
 |---------------|-----------|----------|
-| `sexual_orientation` | GPT-4 | 91% |
-| `gender` | GPT-4 | 90% |
-| `nationality` | GPT-4 | 87% |
-| `race` | Claude | 88% |
-| `disability` | Claude | 85% |
-| `religion` | Claude | 84% |
-| `age` | Mixtral | 83% |
-| `socioeconomic_status` | Gemini | 82% |
-| `physical_appearance` | Mixtral | 79% |
+| `gender` | GPT-4 | 96.7% |
+| `disability` | GPT-4 | 100.0% |
+| `religion` | GPT-4 | 96.7% |
+| `race` | Claude | 83.3% |
+| `age` | Claude | 100.0% |
+| `sexual_orientation` | Claude | 83.3% |
+| `socioeconomic_status` | Claude | 96.7% |
+| `nationality` | Gemini | 96.7% |
+| `physical_appearance` | Gemini | 100.0% |
+
+**Key findings:** Age is universally solved (all models 100%). Race is hardest (all below 84%). No single model dominates — routing consistently outperforms any fixed choice.
 
 *Community contributions to improve these mappings are welcome.*
 

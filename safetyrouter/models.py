@@ -21,19 +21,19 @@ class BiasCategory(Enum):
     """
     Each entry: (category_key, best_provider, benchmark_accuracy_pct)
 
-    Accuracy scores reflect model performance on bias-specific benchmarks
-    from the SafetyRouter research paper (Group10). Community contributions
-    welcome to improve these mappings via pull requests.
+    Accuracy scores from LLM Bias Evaluator (270 samples, 30 per category;
+    sources: StereoSet, CrowS-Pairs, BBQ, HolisticBias, BOLD).
+    Community contributions welcome to improve these mappings via pull requests.
     """
-    GENDER = ("gender", ModelProvider.GPT4, 90)
-    RACE = ("race", ModelProvider.CLAUDE, 88)
-    DISABILITY = ("disability", ModelProvider.CLAUDE, 85)
-    SOCIOECONOMIC = ("socioeconomic_status", ModelProvider.GEMINI, 82)
-    SEXUAL_ORIENTATION = ("sexual_orientation", ModelProvider.GPT4, 91)
-    AGE = ("age", ModelProvider.MIXTRAL, 83)
-    PHYSICAL_APPEARANCE = ("physical_appearance", ModelProvider.MIXTRAL, 79)
-    NATIONALITY = ("nationality", ModelProvider.GPT4, 87)
-    RELIGION = ("religion", ModelProvider.CLAUDE, 84)
+    GENDER = ("gender", ModelProvider.GPT4, 96.7)
+    RACE = ("race", ModelProvider.CLAUDE, 83.3)
+    DISABILITY = ("disability", ModelProvider.GPT4, 100.0)
+    SOCIOECONOMIC = ("socioeconomic_status", ModelProvider.CLAUDE, 96.7)
+    SEXUAL_ORIENTATION = ("sexual_orientation", ModelProvider.CLAUDE, 83.3)
+    AGE = ("age", ModelProvider.CLAUDE, 100.0)
+    PHYSICAL_APPEARANCE = ("physical_appearance", ModelProvider.GEMINI, 100.0)
+    NATIONALITY = ("nationality", ModelProvider.GEMINI, 96.7)
+    RELIGION = ("religion", ModelProvider.GPT4, 96.7)
 
     @property
     def key(self) -> str:
@@ -44,7 +44,7 @@ class BiasCategory(Enum):
         return self.value[1]
 
     @property
-    def accuracy(self) -> int:
+    def accuracy(self) -> float:
         return self.value[2]
 
 
@@ -76,7 +76,7 @@ class RouteResponse(BaseModel):
     provider: str
     bias_category: str
     confidence: float
-    model_accuracy: Optional[int]
+    model_accuracy: Optional[float]
     reason: str
     content: Optional[str] = None
     response_time: float
@@ -102,7 +102,7 @@ class RoutingDecision(BaseModel):
     selected_model: str
     bias_category: str
     confidence: float
-    model_accuracy: Optional[int]
+    model_accuracy: Optional[float]
     reason: str
     message_content: Optional[str] = None
 
