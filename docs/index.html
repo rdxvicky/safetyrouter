@@ -647,7 +647,7 @@
 <section class="hero">
   <div class="badge">
     <div class="badge-dot"></div>
-    Open Source &nbsp;·&nbsp; v0.2.1 &nbsp;·&nbsp; Apache 2.0
+    Open Source &nbsp;·&nbsp; v0.2.2 &nbsp;·&nbsp; Apache 2.0
   </div>
 
   <h1>Safety-Aware<br/><span>LLM Routing.</span></h1>
@@ -727,7 +727,7 @@
     <div class="flow-step">
       <div class="flow-icon">✅</div>
       <div class="flow-title">Safe Response</div>
-      <div class="flow-desc">Fair answer from the best model — or crisis resources if needed</div>
+      <div class="flow-desc">Fair answer + rephrased bias-free version of your prompt — or crisis resources if needed</div>
     </div>
   </div>
 </section>
@@ -929,45 +929,34 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
 <pre><span class="cm"># First-time setup — Ollama + classifier + user profile + API keys</span>
 <span class="dollar">$</span> safetyrouter setup
 
-  SafetyRouter Setup
-  ──────────────────────────────
-  [1/5] Checking Ollama installation...
-        <span style="color:#4ade80">✓ Ollama already installed.</span>
-  [2/5] Checking Ollama is running...
-        <span style="color:#4ade80">✓ Ollama already running.</span>
-  [3/5] Pulling classifier model (gemma3n:e2b)...
-        <span style="color:#4ade80">✓ gemma3n:e2b is ready.</span>
+<span class="cm"># Route — outputs structured JSON with bias scores + rephrased text</span>
+<span class="dollar">$</span> safetyrouter route <span class="st">"Should people be judged by their race?"</span>
 
-  [4/5] A few quick questions to personalize your experience...
+{
+  <span class="st">"routing_decision"</span>: {
+    <span class="st">"selected_model"</span>: <span class="st">"claude"</span>,
+    <span class="st">"bias_category"</span>: <span class="st">"race"</span>,
+    <span class="st">"confidence"</span>: <span class="nm">0.8</span>,
+    <span class="st">"model_accuracy"</span>: <span class="nm">83.3</span>,
+    <span class="st">"reason"</span>: <span class="st">"Routed to claude for 'race' bias (benchmark accuracy: 83.3%)"</span>,
+    <span class="st">"message_content"</span>: <span class="st">"No, people should not be judged by their race..."</span>
+  },
+  <span class="st">"bias_analysis"</span>: {
+    <span class="st">"race"</span>: { <span class="st">"probability"</span>: <span class="nm">0.8</span> },
+    <span class="st">"gender"</span>: { <span class="st">"probability"</span>: <span class="nm">0.02</span> },
+    <span class="cm">... other categories ...</span>
+    <span class="st">"highest_probability_category"</span>: { <span class="st">"category"</span>: <span class="st">"race"</span>, <span class="st">"probability"</span>: <span class="nm">0.8</span> },
+    <span class="st">"rephrased_text"</span>: {
+      <span class="st">"original"</span>: <span class="st">"Should people be judged by their race?"</span>,
+      <span class="st">"rephrased"</span>: <span class="st">"Should people be judged by their individual character?"</span>,
+      <span class="st">"changes_made"</span>: [<span class="st">"Replaced 'race' with 'individual character'"</span>],
+      <span class="st">"meaning_preserved"</span>: <span class="kw">true</span>
+    }
+  },
+  <span class="st">"response_time"</span>: <span class="st">"18.059s"</span>
+}
 
-    What should we call you?: <span style="color:#4ade80">Alex</span>
-
-    Age range: [2] 18–25
-
-    Country code or name: <span style="color:#4ade80">US</span>
-    <span style="color:#4ade80">✓ Crisis resources loaded for United States</span>
-       Emergency  : 911
-       Crisis line: 988 — 988 Suicide &amp; Crisis Lifeline
-       Web chat   : https://988lifeline.org/chat
-
-  [5/5] Configure LLM provider API keys...
-        OpenAI key (sk-...): <span style="color:#4ade80">sk-proj-...</span>
-        <span style="color:#4ade80">✓ OpenAI key saved.</span>
-
-  <span style="color:#4ade80">✓ Setup complete! SafetyRouter is ready to use.</span>
-
-<span class="cm"># Route — emergency escalation (no LLM response shown)</span>
-<span class="dollar">$</span> safetyrouter route <span class="st">"I want to hurt myself"</span>
-
-  ┌─────────────────────────────────────────────────┐
-  │  CRISIS SUPPORT                                 │
-  │  Emergency : 911                                │
-  │  Crisis    : 988 — 988 Suicide &amp; Crisis Lifeline│
-  │  Web chat  : https://988lifeline.org/chat       │
-  │  You are not alone. Help is available now.      │
-  └─────────────────────────────────────────────────┘
-
-<span class="cm"># Classify only — shows bias + mental health risk</span>
+<span class="cm"># Classify only — shows bias + mental health risk (no API call)</span>
 <span class="dollar">$</span> safetyrouter classify <span class="st">"Women are worse drivers than men."</span>
 
   Top bias      : gender
@@ -1042,13 +1031,18 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
 
   <div class="features">
     <div class="feature-card highlight">
+      <div class="feature-icon">✏️</div>
+      <div class="feature-title">Bias rephrasing <span class="new-badge">New</span></div>
+      <div class="feature-desc">Every response includes a <code style="color:var(--orange-light);font-size:0.8em">rephrased_text</code> object — the original sentence rewritten to remove detected bias, with a changelog and meaning-preservation flag. Runs locally at zero cost.</div>
+    </div>
+    <div class="feature-card highlight">
       <div class="feature-icon">🧠</div>
-      <div class="feature-title">Mental health risk detection <span class="new-badge">New</span></div>
+      <div class="feature-title">Mental health risk detection</div>
       <div class="feature-desc">4 risk signals (self_harm, severe_distress, existential_crisis, emotional_dependency) scored on every request — locally, at zero extra cost.</div>
     </div>
     <div class="feature-card highlight">
       <div class="feature-icon">🚨</div>
-      <div class="feature-title">Two-tier crisis escalation <span class="new-badge">New</span></div>
+      <div class="feature-title">Two-tier crisis escalation</div>
       <div class="feature-desc">Emergency tier skips the LLM entirely and shows crisis resources. Helpline tier runs the LLM and appends support line info. 15 countries built in.</div>
     </div>
     <div class="feature-card">
@@ -1180,7 +1174,7 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
   <div class="footer-logo">
     <div class="nav-logo-dot"></div>
     SafetyRouter
-    <span style="color:var(--text3); font-weight:400; font-size:0.8rem; margin-left:0.5rem">v0.2.1</span>
+    <span style="color:var(--text3); font-weight:400; font-size:0.8rem; margin-left:0.5rem">v0.2.2</span>
   </div>
   <div class="footer-links">
     <a href="https://github.com/rdxvicky/safetyrouter" target="_blank">GitHub</a>

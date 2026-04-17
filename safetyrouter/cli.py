@@ -448,13 +448,37 @@ def setup(model: str, skip_keys: bool):
     click.echo(click.style('  safetyrouter route "Should people be judged by their race?"\n', fg="cyan"))
 
 
+def _format_route_json(result) -> dict:
+    """Transform RouteResponse into the structured JSON output format."""
+    raw_bias = result.bias_analysis.get("bias", {})
+    bias_section = {cat: {"probability": prob} for cat, prob in raw_bias.items()}
+    bias_section["highest_probability_category"] = result.bias_analysis.get(
+        "highest_probability_category", {}
+    )
+    rephrased = result.bias_analysis.get("rephrased_text")
+    if rephrased:
+        bias_section["rephrased_text"] = rephrased
+
+    return {
+        "routing_decision": {
+            "selected_model": result.selected_model,
+            "bias_category": result.bias_category,
+            "confidence": result.confidence,
+            "model_accuracy": result.model_accuracy,
+            "reason": result.reason,
+            "message_content": result.content,
+        },
+        "bias_analysis": bias_section,
+        "response_time": f"{result.response_time}s",
+    }
+
+
 @main.command()
 @click.argument("text")
 @click.option("--no-execute", is_flag=True, help="Only show routing decision, skip model call.")
 @click.option("--stream", is_flag=True, help="Stream the response token by token.")
-@click.option("--json-output", is_flag=True, help="Output full JSON response.")
-def route(text: str, no_execute: bool, stream: bool, json_output: bool):
-    """Classify bias in TEXT and route to the best LLM."""
+def route(text: str, no_execute: bool, stream: bool):
+    """Classify bias in TEXT and route to the best LLM. Outputs structured JSON."""
 
     async def _run():
         router = _get_router()
@@ -468,50 +492,44 @@ def route(text: str, no_execute: bool, stream: bool, json_output: bool):
 
         result = await router.route(text, execute=not no_execute)
 
-        if json_output:
-            click.echo(result.model_dump_json(indent=2))
-            return
-
-        # Emergency escalation — show red box, no LLM response
+        # Emergency escalation — include crisis info in JSON output
         if result.escalation_type == "emergency":
-            click.echo()
-            click.echo(click.style("┌─────────────────────────────────────────────────┐", fg="red", bold=True))
-            click.echo(click.style("│  CRISIS SUPPORT                                 │", fg="red", bold=True))
-            click.echo(click.style("│                                                 │", fg="red", bold=True))
-            if result.escalation_number:
-                click.echo(click.style(f"│  Emergency : {result.escalation_number:<36}│", fg="red", bold=True))
-            if result.escalation_service and result.escalation_number:
-                click.echo(click.style(f"│  Crisis    : {result.escalation_number} — {result.escalation_service}", fg="red", bold=True))
-                click.echo(click.style("│", fg="red", bold=True))
-            if result.escalation_webchat:
-                click.echo(click.style(f"│  Web chat  : {result.escalation_webchat}", fg="red", bold=True))
-                click.echo(click.style("│", fg="red", bold=True))
-            click.echo(click.style("│  You are not alone. Help is available now.      │", fg="red", bold=True))
-            click.echo(click.style("└─────────────────────────────────────────────────┘", fg="red", bold=True))
-            if result.session_transcript_path:
-                click.echo(click.style(
-                    f"\n  Session saved to {result.session_transcript_path}",
-                    fg="bright_black",
-                ))
+            output = {
+                "routing_decision": {
+                    "selected_model": result.selected_model,
+                    "bias_category": result.bias_category,
+                    "confidence": result.confidence,
+                    "model_accuracy": result.model_accuracy,
+                    "reason": result.reason,
+                    "message_content": None,
+                },
+                "escalation": {
+                    "type": "emergency",
+                    "emergency_number": result.escalation_number,
+                    "crisis_service": result.escalation_service,
+                    "webchat": result.escalation_webchat,
+                    "message": result.escalation_message,
+                    "session_transcript_path": result.session_transcript_path,
+                },
+                "bias_analysis": {},
+                "response_time": f"{result.response_time}s",
+            }
+            click.echo(json.dumps(output, indent=2))
             return
 
-        # Normal or helpline response
-        click.echo(f"\nBias Category : {result.bias_category}")
-        click.echo(f"Confidence    : {result.confidence:.2%}")
-        click.echo(f"Routed to     : {result.selected_model}")
-        if result.model_accuracy:
-            click.echo(f"Model Accuracy: {result.model_accuracy}%")
-        click.echo(f"Reason        : {result.reason}")
-        click.echo(f"Response Time : {result.response_time}s")
-        if result.content:
-            click.echo(f"\n--- Response ---\n{result.content}")
+        output = _format_route_json(result)
 
-        # Helpline tier — subtle note at bottom
+        # Helpline tier — attach escalation block
         if result.escalation_type == "helpline" and result.escalation_message:
-            click.echo()
-            click.echo(click.style("─" * 55, fg="yellow"))
-            click.echo(click.style(f"  {result.escalation_message}", fg="yellow"))
-            click.echo(click.style("─" * 55, fg="yellow"))
+            output["escalation"] = {
+                "type": "helpline",
+                "number": result.escalation_number,
+                "service": result.escalation_service,
+                "webchat": result.escalation_webchat,
+                "message": result.escalation_message,
+            }
+
+        click.echo(json.dumps(output, indent=2))
 
     try:
         asyncio.run(_run())

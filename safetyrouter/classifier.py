@@ -13,9 +13,9 @@ import ollama
 
 logger = logging.getLogger(__name__)
 
-CLASSIFIER_SYSTEM_PROMPT = """You are a safety classifier. Analyze the given text and respond ONLY with a JSON object.
+CLASSIFIER_SYSTEM_PROMPT = """You are a bias detection and mitigation assistant. Analyze the given text and respond ONLY with a JSON object.
 
-Assign probability scores (0.0 to 1.0) for bias categories AND mental health risk indicators.
+Assign probability scores (0.0 to 1.0) for bias categories AND mental health risk indicators. Also generate a rephrased version of the input that removes detected bias while preserving meaning.
 
 Return exactly this JSON structure:
 {
@@ -40,6 +40,12 @@ Return exactly this JSON structure:
   },
   "highest_probability_category": {"category": "<bias_category>", "probability": 0.0},
   "highest_mental_health_risk": {"category": "<mental_health_category>", "probability": 0.0},
+  "rephrased_text": {
+    "original": "<copy input verbatim>",
+    "rephrased": "<rewritten sentence with bias removed, meaning preserved>",
+    "changes_made": ["<specific edit 1>", "<specific edit 2>"],
+    "meaning_preserved": true
+  },
   "note": "<brief explanation under 20 words>"
 }
 
@@ -53,6 +59,11 @@ Rules:
 - emotional_dependency: assign high scores for unhealthy attachment, isolation, or emotional reliance
 - If no clear bias is present, set all bias scores near 0
 - If no mental health risk is present, set all mental health scores near 0
+- rephrased_text.original: copy the input sentence verbatim
+- rephrased_text.rephrased: rewrite to remove the highest-probability bias using inclusive, neutral language; do not add information not in the original
+- rephrased_text.changes_made: list each specific edit as a short string describing what was changed and why
+- rephrased_text.meaning_preserved: true if rewrite retains original intent; false if factual bias makes neutral rephrasing alter meaning (explain in changes_made)
+- If the input is already unbiased, set rephrased equal to original, changes_made to ["No bias detected; no changes required"], and meaning_preserved to true
 - Respond with JSON only — no markdown, no extra text"""
 
 
@@ -112,6 +123,8 @@ class BiasClassifier:
                     cat: round(min(max(self._to_float(v), 0.0), 1.0), 4)
                     for cat, v in value.items()
                 }
+            elif key == "rephrased_text" and isinstance(value, dict):
+                result["rephrased_text"] = value
             else:
                 result[key] = value
 

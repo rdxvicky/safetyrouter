@@ -1,6 +1,6 @@
 # SafetyRouter
 
-**A Safety-Aware LLM Routing Framework** — detects bias type and mental health risk locally, routes to the model best equipped for that category, and escalates to human crisis services when needed.
+**A Safety-Aware LLM Routing Framework** — detects bias type and mental health risk locally, routes to the model best equipped for that category, rephrases biased input, and escalates to human crisis services when needed.
 
 No matter what you ask, SafetyRouter ensures the response comes from the model with the strongest track record for fairness in that specific domain — and steps aside entirely when a human is the right answer.
 
@@ -228,7 +228,7 @@ safetyrouter setup --skip-keys
 # Use a custom classifier model
 safetyrouter setup --model llama3.2
 
-# Route a prompt (shows escalation UI when triggered)
+# Route a prompt — outputs structured JSON
 safetyrouter route "Is discrimination based on religion acceptable?"
 
 # Classify only (no API call — free)
@@ -240,43 +240,78 @@ safetyrouter inspect
 # Start HTTP server
 safetyrouter serve --port 8000
 
-# JSON output (includes all escalation fields)
-safetyrouter route "text" --json-output
-
 # Stream response
 safetyrouter route "text" --stream
 ```
 
-**Emergency escalation** displays a red crisis box with no LLM response:
+**`route` outputs structured JSON** with routing decision, per-category bias scores, rephrased text, and response time:
 
+```json
+{
+  "routing_decision": {
+    "selected_model": "claude",
+    "bias_category": "race",
+    "confidence": 0.8,
+    "model_accuracy": 83.3,
+    "reason": "Routed to claude for 'race' bias (benchmark accuracy: 83.3%)",
+    "message_content": "No, people should not be judged by their race..."
+  },
+  "bias_analysis": {
+    "race": { "probability": 0.8 },
+    "gender": { "probability": 0.02 },
+    "age": { "probability": 0.01 },
+    "religion": { "probability": 0.01 },
+    "nationality": { "probability": 0.03 },
+    "disability": { "probability": 0.0 },
+    "socioeconomic_status": { "probability": 0.0 },
+    "sexual_orientation": { "probability": 0.0 },
+    "physical_appearance": { "probability": 0.0 },
+    "demographic": { "probability": 0.0 },
+    "others": { "probability": 0.0 },
+    "highest_probability_category": { "category": "race", "probability": 0.8 },
+    "rephrased_text": {
+      "original": "Should people be judged by their race?",
+      "rephrased": "Should people be judged by their individual character and actions?",
+      "changes_made": [
+        "Replaced 'race' with 'individual character and actions' to remove racial framing"
+      ],
+      "meaning_preserved": true
+    }
+  },
+  "response_time": "18.059s"
+}
 ```
-┌─────────────────────────────────────────────────┐
-│  CRISIS SUPPORT                                 │
-│                                                 │
-│  Emergency : 911                                │
-│  Crisis    : 988 — 988 Suicide & Crisis Lifeline│
-│                                                 │
-│  Web chat  : https://988lifeline.org/chat       │
-│                                                 │
-│  You are not alone. Help is available now.      │
-└─────────────────────────────────────────────────┘
 
-  Session saved to ~/.safetyrouter/sessions/2026-03-17T14-22-01.json
+**Emergency escalation** outputs a JSON block with crisis resources (no LLM response):
+
+```json
+{
+  "routing_decision": { "selected_model": "escalated", ... },
+  "escalation": {
+    "type": "emergency",
+    "emergency_number": "911",
+    "crisis_service": "988 Suicide & Crisis Lifeline",
+    "webchat": "https://988lifeline.org/chat",
+    "session_transcript_path": "~/.safetyrouter/sessions/2026-03-17T14-22-01.json"
+  },
+  "response_time": "1.2s"
+}
 ```
 
-**Helpline escalation** shows the LLM response with a subtle line at the bottom:
+**Helpline escalation** includes an `escalation` block alongside the normal response:
 
-```
-Bias Category : gender
-Confidence    : 92.00%
-Routed to     : gpt4
-...
---- Response ---
-<LLM response here>
-
-───────────────────────────────────────────────────────
-  Support line: 988 — 988 Suicide & Crisis Lifeline | Chat: https://988lifeline.org/chat
-───────────────────────────────────────────────────────
+```json
+{
+  "routing_decision": { ... },
+  "bias_analysis": { ... },
+  "escalation": {
+    "type": "helpline",
+    "number": "988",
+    "service": "988 Suicide & Crisis Lifeline",
+    "webchat": "https://988lifeline.org/chat"
+  },
+  "response_time": "9.4s"
+}
 ```
 
 ---
