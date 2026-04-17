@@ -5,8 +5,10 @@ Runs entirely locally — no API keys required for classification.
 gemma3n is chosen for its strong multilingual reasoning and lightweight
 footprint (e2b = 5.6 GB), making it ideal for edge/local deployment.
 """
+import asyncio
 import json
 import logging
+import re
 from typing import Any, Dict
 
 import ollama
@@ -66,6 +68,13 @@ Rules:
 - If the input is already unbiased, set rephrased equal to original, changes_made to ["No bias detected; no changes required"], and meaning_preserved to true
 - Respond with JSON only — no markdown, no extra text"""
 
+_BIAS_CATS = [
+    "demographic", "age", "physical_appearance", "gender", "disability",
+    "socioeconomic_status", "religion", "sexual_orientation", "race",
+    "nationality", "others",
+]
+_MH_CATS = ["emotional_dependency", "self_harm", "severe_distress", "existential_crisis"]
+
 
 class BiasClassifier:
     """
@@ -83,7 +92,9 @@ class BiasClassifier:
         """Classify bias and mental health risk in text. Returns normalized scores."""
         logger.info(f"Classifying text with {self.model}: {text[:80]}...")
 
-        response = ollama.chat(
+        # Issue #6: wrap sync ollama call in a thread to avoid blocking the event loop
+        response = await asyncio.to_thread(
+            ollama.chat,
             model=self.model,
             messages=[
                 {"role": "system", "content": CLASSIFIER_SYSTEM_PROMPT},
@@ -94,15 +105,35 @@ class BiasClassifier:
 
         raw = response["message"]["content"].strip()
 
-        # Strip markdown code fences if the model wraps its output
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-            raw = raw.strip()
+        # Issue #9: robust markdown fence stripping (handles ```json, ```JSON, ``` etc.)
+        raw = re.sub(r"^```[a-zA-Z0-9]*\n?", "", raw)
+        raw = re.sub(r"\n?```$", "", raw).strip()
 
-        analysis = json.loads(raw)
+        # Issue #2: handle malformed JSON gracefully — return safe fallback instead of crashing
+        try:
+            analysis = json.loads(raw)
+        except json.JSONDecodeError as e:
+            logger.error(f"Classifier returned invalid JSON ({e}). Raw: {raw[:300]}")
+            return self._safe_fallback(text)
+
         return self._normalize(analysis)
+
+    def _safe_fallback(self, text: str = "") -> Dict[str, Any]:
+        """Return zero-score fallback when classifier output cannot be parsed."""
+        return {
+            "bias": {cat: 0.0 for cat in _BIAS_CATS},
+            "mental_health": {cat: 0.0 for cat in _MH_CATS},
+            "highest_probability_category": {"category": "others", "probability": 0.0},
+            "highest_mental_health_risk": {"category": "none", "probability": 0.0},
+            "rephrased_text": {
+                "original": text,
+                "rephrased": text,
+                "changes_made": ["Classifier error — response could not be parsed; no changes made"],
+                "meaning_preserved": True,
+                "meaning_change_risk": "unknown",
+            },
+            "note": "Classifier returned invalid JSON — all scores defaulted to 0.",
+        }
 
     def _to_float(self, v: Any) -> float:
         """Convert value to float, scaling 0–100 range to 0–1 if needed."""
@@ -113,30 +144,63 @@ class BiasClassifier:
         """Ensure all probabilities are in [0, 1] float range."""
         result = {}
         for key, value in raw.items():
-            if key == "bias" and isinstance(value, dict):
+            if key == "bias":
+                # Issue #8: validate that "bias" is actually a dict
+                if not isinstance(value, dict):
+                    logger.warning(f"Classifier returned non-dict 'bias' field ({type(value)}); using zeros")
+                    value = {}
                 result["bias"] = {
                     cat: round(min(max(self._to_float(v), 0.0), 1.0), 4)
                     for cat, v in value.items()
                 }
-            elif key == "mental_health" and isinstance(value, dict):
+            elif key == "mental_health":
+                # Issue #8: validate that "mental_health" is actually a dict
+                if not isinstance(value, dict):
+                    logger.warning(f"Classifier returned non-dict 'mental_health' field ({type(value)}); using zeros")
+                    value = {}
                 result["mental_health"] = {
                     cat: round(min(max(self._to_float(v), 0.0), 1.0), 4)
                     for cat, v in value.items()
                 }
             elif key == "rephrased_text" and isinstance(value, dict):
-                result["rephrased_text"] = value
+                result["rephrased_text"] = self._annotate_rephrasing(value)
             else:
                 result[key] = value
 
-        # Recalculate highest fields to be safe
+        # Issue #8: ensure bias and mental_health keys always exist
+        if "bias" not in result:
+            logger.warning("Classifier response missing 'bias' field; using zeros")
+            result["bias"] = {cat: 0.0 for cat in _BIAS_CATS}
+        if "mental_health" not in result:
+            logger.warning("Classifier response missing 'mental_health' field; using zeros")
+            result["mental_health"] = {cat: 0.0 for cat in _MH_CATS}
+
+        # Recalculate highest fields from actual scores (don't trust model's self-reported values)
         result["highest_probability_category"] = self._find_highest(result)
         result["highest_mental_health_risk"] = self._find_highest_mental_health(result)
         return result
 
+    def _annotate_rephrasing(self, rt: Dict[str, Any]) -> Dict[str, Any]:
+        """Issue #11: add a heuristic meaning_change_risk flag to rephrased_text."""
+        original = rt.get("original", "")
+        rephrased = rt.get("rephrased", "")
+        if original and rephrased:
+            ratio = len(rephrased) / max(len(original), 1)
+            # Flag as high-risk if rephrased is less than half or more than double the original length
+            rt["meaning_change_risk"] = "high" if (ratio < 0.5 or ratio > 2.0) else "low"
+        else:
+            rt["meaning_change_risk"] = "unknown"
+        return rt
+
     def _find_highest(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """Find the bias category with the highest probability score."""
+        """Find the bias category with the highest probability score.
+
+        'demographic' and 'others' are skipped — they are catch-all categories
+        with no dedicated routing entry. If only these are present, falls back
+        to 'others' (routed to GPT-4).
+        """
         bias_scores = analysis.get("bias", {})
-        skip = {"others"}
+        skip = {"others", "demographic"}
         best_cat, best_prob = "others", 0.0
         for cat, prob in bias_scores.items():
             if cat in skip:

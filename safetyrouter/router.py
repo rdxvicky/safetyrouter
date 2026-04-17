@@ -16,7 +16,6 @@ from typing import Any, AsyncGenerator, Dict, Optional
 from .classifier import BiasClassifier
 from .config import SafetyRouterConfig
 from .crisis import (
-    build_mailto_link,
     build_session_transcript,
     get_crisis_resources,
     get_helpline,
@@ -25,6 +24,9 @@ from .models import BiasCategory, ModelProvider, RouteResponse
 from .providers.base import BaseProvider
 
 logger = logging.getLogger(__name__)
+
+# Issue #16: maximum allowed input length to prevent OOM in the classifier
+MAX_INPUT_LENGTH = 10_000
 
 # Default routing table: bias category → (ModelProvider, accuracy_pct)
 DEFAULT_ROUTING: Dict[str, tuple] = {
@@ -39,7 +41,7 @@ class SafetyRouter:
 
     1. Classify bias + mental health risk using gemma3n locally (no API key needed)
     2. If self-harm risk ≥ threshold: emergency escalation — skip LLM
-    3. If distress/crisis risk ≥ threshold: run LLM + attach helpline
+    3. If distress/crisis/dependency risk ≥ threshold: run LLM + attach helpline
     4. Otherwise: look up the best provider for the bias type and call it
 
     Args:
@@ -197,6 +199,14 @@ class SafetyRouter:
         response.escalation_message = helpline_msg
         return response
 
+    def _crisis_score(self, mh: Dict[str, Any]) -> float:
+        """Issue #7: crisis score includes emotional_dependency alongside distress/crisis."""
+        return max(
+            float(mh.get("existential_crisis", 0.0)),
+            float(mh.get("severe_distress", 0.0)),
+            float(mh.get("emotional_dependency", 0.0)),
+        )
+
     async def route(
         self,
         text: str,
@@ -217,6 +227,13 @@ class SafetyRouter:
             RouteResponse with routing metadata and (if execute=True) model content.
             If emergency escalation fires, content is None and escalation_* fields are set.
         """
+        # Issue #16: reject inputs that would OOM the classifier
+        if len(text) > MAX_INPUT_LENGTH:
+            raise ValueError(
+                f"Input too long: {len(text)} chars (max {MAX_INPUT_LENGTH}). "
+                "Truncate or split the input before routing."
+            )
+
         start = time.monotonic()
 
         # Step 1: classify bias + mental health
@@ -225,10 +242,7 @@ class SafetyRouter:
         # Step 2: two-tier mental health escalation check (runs before LLM routing)
         mh = analysis.get("mental_health", {})
         self_harm_score = float(mh.get("self_harm", 0.0))
-        crisis_score = max(
-            float(mh.get("existential_crisis", 0.0)),
-            float(mh.get("severe_distress", 0.0)),
-        )
+        crisis_score = self._crisis_score(mh)
 
         if self_harm_score >= self.config.self_harm_threshold:
             return self._build_emergency_response(analysis, text, start)
@@ -241,6 +255,11 @@ class SafetyRouter:
         if category in self._routing_table:
             provider_enum, accuracy = self._routing_table[category]
         else:
+            # Issue #3: warn explicitly when falling back on an unknown category
+            logger.warning(
+                f"Unknown bias category '{category}' — not in routing table. "
+                "Falling back to GPT-4. Add a custom_routing entry to handle it explicitly."
+            )
             provider_enum, accuracy = ModelProvider.GPT4, None
 
         reason = (
@@ -254,7 +273,13 @@ class SafetyRouter:
         if execute:
             eff_prompt = self._age_aware_system_prompt(system_prompt, self.config.user_age_range)
             provider = self._get_provider(provider_enum)
-            content = await provider.complete(text, eff_prompt)
+            # Issue #4: catch provider errors and surface them clearly
+            try:
+                content = await provider.complete(text, eff_prompt)
+            except Exception as e:
+                raise RuntimeError(
+                    f"Provider '{provider_enum.value}' failed to complete the request: {e}"
+                ) from e
 
         response = RouteResponse(
             selected_model=provider_enum.value,
@@ -284,23 +309,86 @@ class SafetyRouter:
         system_prompt: Optional[str] = None,
     ) -> AsyncGenerator[str, None]:
         """
-        Classify bias, select the best model, and stream its response token by token.
+        Classify bias, check for mental health escalation, then stream the response.
+
+        Issue #1 fix: escalation is checked BEFORE any tokens are streamed.
+        Emergency escalation yields the crisis message instead of LLM tokens.
+        Helpline escalation appends the helpline number after the LLM response.
 
         Usage:
             async for token in router.stream("your prompt"):
                 print(token, end="", flush=True)
         """
+        # Issue #16: reject oversized inputs
+        if len(text) > MAX_INPUT_LENGTH:
+            raise ValueError(
+                f"Input too long: {len(text)} chars (max {MAX_INPUT_LENGTH})."
+            )
+
         analysis = await self.classifier.classify(text)
+        mh = analysis.get("mental_health", {})
+        self_harm_score = float(mh.get("self_harm", 0.0))
+        crisis_score = self._crisis_score(mh)
+
+        # Issue #1: emergency check — yield crisis resources, skip LLM entirely
+        if self_harm_score >= self.config.self_harm_threshold:
+            resources = get_crisis_resources(self.config.user_country)
+            helpline_info = get_helpline(self.config.user_country)
+            build_session_transcript(
+                text=text,
+                mental_health_scores=mh,
+                user_name=self.config.user_name,
+                age_range=self.config.user_age_range,
+                country=self.config.user_country,
+            )
+            logger.warning(
+                f"EMERGENCY escalation triggered in stream (self_harm={self_harm_score:.2f})"
+            )
+            yield (
+                f"CRISIS SUPPORT\n"
+                f"Emergency: {resources['emergency']}\n"
+                f"Crisis Line: {helpline_info['number']} — {helpline_info['name']}"
+            )
+            if helpline_info.get("webchat"):
+                yield f"\nWeb Chat: {helpline_info['webchat']}"
+            return
+
         highest = analysis.get("highest_probability_category", {})
         category = highest.get("category", "others")
 
-        provider_enum = self._routing_table.get(category, (ModelProvider.GPT4, None))[0]
-        provider = self._get_provider(provider_enum)
+        if category in self._routing_table:
+            provider_enum = self._routing_table[category][0]
+        else:
+            # Issue #3: warn on unknown category in stream path too
+            logger.warning(
+                f"Unknown bias category '{category}' in stream — falling back to GPT-4."
+            )
+            provider_enum = ModelProvider.GPT4
 
+        provider = self._get_provider(provider_enum)
         eff_prompt = self._age_aware_system_prompt(system_prompt, self.config.user_age_range)
         logger.info(f"Streaming via {provider_enum.value} for '{category}' bias")
-        async for token in provider.stream(text, eff_prompt):
-            yield token
+
+        # Issue #5: catch mid-stream provider errors and surface them
+        try:
+            async for token in provider.stream(text, eff_prompt):
+                yield token
+        except Exception as e:
+            logger.error(f"Stream error from provider '{provider_enum.value}': {e}")
+            raise RuntimeError(
+                f"Provider '{provider_enum.value}' stream failed: {e}"
+            ) from e
+
+        # Issue #1: helpline tier — append support line after streaming completes
+        if crisis_score >= self.config.helpline_threshold:
+            helpline_info = get_helpline(self.config.user_country)
+            logger.info(f"HELPLINE appended in stream (crisis_score={crisis_score:.2f})")
+            yield (
+                f"\n\n---\n"
+                f"Support line: {helpline_info['number']} — {helpline_info['name']}"
+            )
+            if helpline_info.get("webchat"):
+                yield f" | Chat: {helpline_info['webchat']}"
 
     def inspect(self) -> Dict[str, Any]:
         """Return the current routing table for inspection/debugging."""

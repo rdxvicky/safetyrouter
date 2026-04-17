@@ -190,6 +190,9 @@ def build_session_transcript(
     with open(path, "w") as f:
         json.dump(payload, f, indent=2)
 
+    # Issue #15: restrict transcript to owner read/write only (sensitive mental health data)
+    os.chmod(path, 0o600)
+
     return path
 
 

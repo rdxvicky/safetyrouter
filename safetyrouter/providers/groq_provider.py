@@ -1,7 +1,10 @@
 """Groq provider (Mixtral, LLaMA, etc. — free tier available)."""
+import logging
 from typing import AsyncGenerator, Optional
 
 from .base import BaseProvider
+
+logger = logging.getLogger(__name__)
 
 
 class GroqProvider(BaseProvider):
@@ -25,7 +28,12 @@ class GroqProvider(BaseProvider):
             model=self.model,
             messages=messages,
         )
-        return response.choices[0].message.content
+        content = response.choices[0].message.content
+        if content is None:
+            raise RuntimeError(
+                f"Groq returned empty content (finish_reason={response.choices[0].finish_reason})"
+            )
+        return content
 
     async def stream(
         self, text: str, system_prompt: Optional[str] = None
@@ -35,12 +43,17 @@ class GroqProvider(BaseProvider):
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": text})
 
-        stream = await self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            stream=True,
-        )
-        async for chunk in stream:
-            delta = chunk.choices[0].delta.content
-            if delta:
-                yield delta
+        # Issue #5: catch mid-stream errors
+        try:
+            stream = await self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                stream=True,
+            )
+            async for chunk in stream:
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield delta
+        except Exception as e:
+            logger.error(f"Groq stream error: {e}")
+            raise

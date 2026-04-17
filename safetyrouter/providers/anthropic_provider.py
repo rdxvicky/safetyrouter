@@ -1,7 +1,10 @@
 """Anthropic provider (Claude models)."""
+import logging
 from typing import AsyncGenerator, Optional
 
 from .base import BaseProvider
+
+logger = logging.getLogger(__name__)
 
 
 class AnthropicProvider(BaseProvider):
@@ -26,6 +29,12 @@ class AnthropicProvider(BaseProvider):
             kwargs["system"] = system_prompt
 
         response = await self.client.messages.create(**kwargs)
+
+        # Issue #5: guard against empty/filtered responses
+        if not response.content:
+            raise RuntimeError(
+                f"Anthropic returned empty content (stop_reason={response.stop_reason})"
+            )
         return response.content[0].text
 
     async def stream(
@@ -39,6 +48,11 @@ class AnthropicProvider(BaseProvider):
         if system_prompt:
             kwargs["system"] = system_prompt
 
-        async with self.client.messages.stream(**kwargs) as stream:
-            async for text_chunk in stream.text_stream:
-                yield text_chunk
+        # Issue #5: catch mid-stream errors
+        try:
+            async with self.client.messages.stream(**kwargs) as stream:
+                async for text_chunk in stream.text_stream:
+                    yield text_chunk
+        except Exception as e:
+            logger.error(f"Anthropic stream error: {e}")
+            raise
