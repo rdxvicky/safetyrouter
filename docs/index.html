@@ -647,7 +647,7 @@
 <section class="hero">
   <div class="badge">
     <div class="badge-dot"></div>
-    Open Source &nbsp;·&nbsp; v0.2.2 &nbsp;·&nbsp; Apache 2.0
+    Open Source &nbsp;·&nbsp; v0.2.3 &nbsp;·&nbsp; Apache 2.0
   </div>
 
   <h1>Safety-Aware<br/><span>LLM Routing.</span></h1>
@@ -736,7 +736,7 @@
 
 <!-- ── CRISIS ESCALATION ── -->
 <section class="section" id="crisis">
-  <div class="section-label">Crisis Safety <span class="new-badge">New in v0.2.0</span></div>
+  <div class="section-label">Crisis Safety</div>
   <h2 class="section-title">Two-tier human escalation</h2>
   <p class="section-sub">
     When the mental health classifier detects risk, SafetyRouter steps aside.
@@ -1032,18 +1032,18 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
   <div class="features">
     <div class="feature-card highlight">
       <div class="feature-icon">✏️</div>
-      <div class="feature-title">Bias rephrasing <span class="new-badge">New</span></div>
-      <div class="feature-desc">Every response includes a <code style="color:var(--orange-light);font-size:0.8em">rephrased_text</code> object — the original sentence rewritten to remove detected bias, with a changelog and meaning-preservation flag. Runs locally at zero cost.</div>
+      <div class="feature-title">Bias rephrasing</div>
+      <div class="feature-desc">Every response includes a <code style="color:var(--orange-light);font-size:0.8em">rephrased_text</code> object — the original sentence rewritten to remove detected bias, with a changelog, meaning-preservation flag, and change-risk indicator. Runs locally at zero cost.</div>
     </div>
     <div class="feature-card highlight">
       <div class="feature-icon">🧠</div>
       <div class="feature-title">Mental health risk detection</div>
-      <div class="feature-desc">4 risk signals (self_harm, severe_distress, existential_crisis, emotional_dependency) scored on every request — locally, at zero extra cost.</div>
+      <div class="feature-desc">4 risk signals scored on every request locally: self_harm, severe_distress, existential_crisis, and emotional_dependency — all trigger escalation when above threshold.</div>
     </div>
     <div class="feature-card highlight">
       <div class="feature-icon">🚨</div>
       <div class="feature-title">Two-tier crisis escalation</div>
-      <div class="feature-desc">Emergency tier skips the LLM entirely and shows crisis resources. Helpline tier runs the LLM and appends support line info. 15 countries built in.</div>
+      <div class="feature-desc">Emergency tier skips the LLM entirely — even in streaming mode. Helpline tier appends support line info. Crisis checks run before the first token is sent. 15 countries built in.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon">⚡</div>
@@ -1062,8 +1062,8 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🌊</div>
-      <div class="feature-title">Streaming support</div>
-      <div class="feature-desc">Token-by-token streaming across all providers via a unified async generator interface.</div>
+      <div class="feature-title">Safe streaming</div>
+      <div class="feature-desc">Token-by-token streaming with full escalation checks. Emergency and helpline logic fires before any tokens are yielded — no unsafe responses leak through.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🏠</div>
@@ -1071,9 +1071,9 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
       <div class="feature-desc">Route everything to local Ollama models. Zero external API dependency — perfect for air-gapped environments.</div>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">🛠️</div>
-      <div class="feature-title">Fully configurable</div>
-      <div class="feature-desc">Override routing rules, escalation thresholds, model choices, user profile — all via config or custom providers.</div>
+      <div class="feature-icon">🛡️</div>
+      <div class="feature-title">Production hardened <span class="new-badge">v0.2.3</span></div>
+      <div class="feature-desc">Rate limiting (60 req/min), input length validation, classifier fallback on malformed JSON, provider error isolation, thread-safe server init, and 26 unit tests covering all failure modes.</div>
     </div>
   </div>
 </section>
@@ -1174,7 +1174,7 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
   <div class="footer-logo">
     <div class="nav-logo-dot"></div>
     SafetyRouter
-    <span style="color:var(--text3); font-weight:400; font-size:0.8rem; margin-left:0.5rem">v0.2.2</span>
+    <span style="color:var(--text3); font-weight:400; font-size:0.8rem; margin-left:0.5rem">v0.2.3</span>
   </div>
   <div class="footer-links">
     <a href="https://github.com/rdxvicky/safetyrouter" target="_blank">GitHub</a>
