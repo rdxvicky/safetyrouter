@@ -749,34 +749,162 @@ code {
 }
 
 /* ── RESPONSIVE ── */
+
+/* Tablet — 1024px and below */
 @media (max-width: 1024px) {
   .docs-grid { grid-template-columns: 1fr; }
   .docs-side { position: static; }
-  .docs-tabs { flex-direction: row; flex-wrap: wrap; }
+  .docs-tabs {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 1.25rem;
+    padding-bottom: 0.25rem;
+    /* Hide scrollbar but keep functionality */
+    scrollbar-width: none;
+  }
+  .docs-tabs::-webkit-scrollbar { display: none; }
+  .docs-tab { flex-shrink: 0; white-space: nowrap; }
+
   .features-grid { grid-template-columns: repeat(2, 1fr); }
   .install-inner { grid-template-columns: 1fr; gap: 2.5rem; }
   .footer-top { grid-template-columns: 1fr 1fr; }
   .crisis-grid { grid-template-columns: 1fr; }
-  .float-pill.tl { top: -14px; left: 0; }
-  .float-pill.tr { top: -14px; right: 0; }
-  .float-pill.bl { bottom: 14px; left: 0; }
-  .float-pill.br { bottom: 14px; right: 0; }
+
+  .float-pill.tl { top: -16px; left: 0; }
+  .float-pill.tr { top: -16px; right: 0; }
+  .float-pill.bl { bottom: -16px; left: 0; }
+  .float-pill.br { bottom: -16px; right: 0; }
 }
+
+/* Mobile — 768px and below */
 @media (max-width: 768px) {
+  .nav { padding: 1rem 1.25rem; }
   .nav-links a:not(.nav-cta) { display: none; }
+
+  /* Hero */
   .hero { padding: 2.5rem 1.25rem 0; }
-  .hero-meta-row { flex-direction: column; align-items: flex-start; }
-  .section { padding: 4rem 1.25rem; }
+  .hero-eyebrow { font-size: 0.72rem; padding: 0.28rem 0.7rem; margin-bottom: 1.5rem; }
+  .hero-headline {
+    font-size: clamp(2rem, 9vw, 3.2rem);
+    margin-bottom: 1.75rem;
+  }
+  .hero-meta-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .hero-tagline { max-width: 100%; font-size: 0.95rem; }
+  .hero-cta-row { width: 100%; }
+  .hero-cta-row .btn-primary, .hero-cta-row .btn-ghost {
+    flex: 1;
+    justify-content: center;
+    padding: 0.8rem 1.2rem;
+  }
+
+  /* Mega wordmark — much smaller floor on small screens */
+  .mega-wordmark {
+    font-size: clamp(2.5rem, 14vw, 5.5rem);
+    padding-bottom: 2rem;
+  }
+
+  /* Hero stage: smaller pills, hide bottom ones to avoid clutter over terminal */
+  .float-pill {
+    font-size: 0.74rem;
+    padding: 0.4rem 0.75rem;
+    gap: 0.4rem;
+  }
+  .float-pill .pill-icon { width: 18px; height: 18px; font-size: 0.6rem; }
+  .float-pill.bl, .float-pill.br { display: none; }
+  .float-pill.tl { top: -14px; left: 0.5rem; }
+  .float-pill.tr { top: -14px; right: 0.5rem; }
+
+  /* Provider strip: stack and center */
+  .strip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1.25rem;
+  }
+  .strip-providers { gap: 1rem; flex-wrap: wrap; font-size: 0.88rem; }
+  .strip-label { font-size: 0.68rem; }
+  .strip-label:last-of-type { display: none; }
+
+  /* Sections */
+  .section { padding: 3.5rem 1.25rem; }
+  .section-tight { padding-top: 2rem; }
+  .section-intro { margin-bottom: 2.5rem; font-size: 0.95rem; max-width: 100%; }
+
+  /* Steps */
   .steps-grid { grid-template-columns: 1fr; }
-  .step { border-right: none; border-bottom: 1px solid var(--line); padding: 1.75rem 0 !important; }
+  .step { border-right: none; border-bottom: 1px solid var(--line); padding: 1.5rem 0 !important; }
   .step:last-child { border-bottom: none; }
+  .step-title { font-size: 1.25rem; }
+
+  /* Crisis */
+  .crisis-card { padding: 1.85rem 1.5rem; }
+  .crisis-card-title { font-size: 1.55rem; }
+
+  /* Features */
   .features-grid { grid-template-columns: 1fr; }
-  .changelog-row { grid-template-columns: 1fr; gap: 1rem; }
-  .cl-meta { flex-direction: row; align-items: baseline; gap: 1rem; }
-  .footer-top { grid-template-columns: 1fr; gap: 2rem; }
-  .float-pill { font-size: 0.78rem; padding: 0.45rem 0.85rem; }
-  .term-body { font-size: 0.74rem; padding: 1.1rem 1.25rem; }
-  .docs-codeblock pre { font-size: 0.74rem; padding: 1.1rem 1.25rem; }
-  .data-card { overflow-x: auto; }
+  .feature { padding: 1.85rem 1.5rem; }
+  .feature h3 { font-size: 1.2rem; }
+
+  /* Code blocks */
+  .term-body { font-size: 0.7rem; padding: 1rem 1.15rem; line-height: 1.75; }
+  .docs-codeblock pre { font-size: 0.72rem; padding: 1.15rem 1.25rem; line-height: 1.75; }
+
+  /* Data tables — horizontal scroll */
+  .data-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .data-card table { min-width: 540px; }
+  .data-card thead th, .data-card tbody td { padding: 0.85rem 1rem; }
+
+  /* Country grid: 2 columns on small screens */
+  .country-grid { grid-template-columns: repeat(2, 1fr); column-gap: 1rem; }
+
+  /* Install section */
+  .install { padding: 4rem 1.25rem; }
+  .install-sub { font-size: 0.95rem; max-width: 100%; }
+  .cmd-box {
+    font-size: 0.78rem;
+    padding: 0.75rem 0.9rem;
+    gap: 0.6rem;
+  }
+  .cmd-box .label-pre { font-size: 0.66rem; min-width: 48px; }
+  .install-buttons .btn-cream, .install-buttons .btn-outline-cream {
+    flex: 1; justify-content: center;
+  }
+
+  /* Changelog */
+  .changelog-row { grid-template-columns: 1fr; gap: 1rem; padding: 2rem 0; }
+  .cl-meta { flex-direction: row; align-items: baseline; gap: 0.85rem; }
+  .cl-version { font-size: 1.35rem; }
+  .cl-items li { grid-template-columns: 60px 1fr; gap: 0.6rem; font-size: 0.88rem; }
+
+  /* Footer */
+  .footer-top { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+}
+
+/* Small mobile — 480px and below */
+@media (max-width: 480px) {
+  .hero-headline { font-size: clamp(1.85rem, 8.5vw, 2.6rem); letter-spacing: -0.035em; }
+  .hero-tagline { font-size: 0.9rem; }
+  .hero-eyebrow { font-size: 0.68rem; }
+
+  .mega-wordmark { font-size: clamp(2rem, 13vw, 3.5rem); padding-bottom: 1.5rem; }
+
+  /* Hide all floating pills on tiny screens — they crowd the terminal */
+  .float-pill { display: none; }
+
+  /* Cmd-box wraps the command onto a new line if it overflows */
+  .cmd-box { flex-wrap: wrap; }
+  .cmd-box .label-pre { min-width: 0; flex-basis: 100%; margin-bottom: 0.15rem; }
+
+  .crisis-card-title { font-size: 1.35rem; }
+  .feature h3 { font-size: 1.1rem; }
+
+  .install-buttons { flex-direction: column; }
 }
