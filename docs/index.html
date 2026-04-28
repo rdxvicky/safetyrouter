@@ -4,36 +4,54 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SafetyRouter — Safety-Aware LLM Routing</title>
-  <meta name="description" content="Safety-Aware LLM Routing Framework. Bias Detection + Mental Health Risk Detection + Human Escalation. Classifies locally at zero API cost, routes to the best model, escalates to crisis services when needed." />
+  <meta name="description" content="Safety-Aware LLM Routing Framework. Bias Detection + Bias Rephrasing + Mental Health Risk Detection + Human Escalation. Classifies locally at zero API cost." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --orange:        #f97316;
-      --orange-light:  #fb923c;
-      --orange-dim:    #ea580c;
-      --orange-glow:   rgba(249,115,22,0.15);
-      --orange-border: rgba(249,115,22,0.3);
-      --red:           #ef4444;
-      --red-light:     #f87171;
-      --red-glow:      rgba(239,68,68,0.12);
-      --red-border:    rgba(239,68,68,0.3);
-      --yellow:        #eab308;
-      --yellow-glow:   rgba(234,179,8,0.12);
-      --yellow-border: rgba(234,179,8,0.3);
-      --green:         #4ade80;
-      --bg:            #080808;
-      --bg2:           #101010;
-      --bg3:           #161616;
-      --bg4:           #1c1c1c;
-      --border:        #1f1f1f;
-      --text:          #f4f4f5;
-      --text2:         #a1a1aa;
-      --text3:         #52525b;
-      --mono:          'JetBrains Mono', monospace;
-      --sans:          'Inter', sans-serif;
+      /* Claude-inspired warm palette */
+      --clay:          #cc785c;
+      --clay-light:    #e08a6a;
+      --clay-dim:      #b5603e;
+      --clay-glow:     rgba(204,120,92,0.12);
+      --clay-border:   rgba(204,120,92,0.28);
+      --clay-subtle:   rgba(204,120,92,0.06);
+
+      --red:           #e05252;
+      --red-light:     #f08080;
+      --red-glow:      rgba(224,82,82,0.10);
+      --red-border:    rgba(224,82,82,0.28);
+
+      --amber:         #d4a847;
+      --amber-glow:    rgba(212,168,71,0.10);
+      --amber-border:  rgba(212,168,71,0.28);
+
+      --green:         #5dac7e;
+
+      /* Warm dark surfaces */
+      --bg:            #141413;
+      --bg2:           #1a1917;
+      --bg3:           #201e1b;
+      --bg4:           #272420;
+      --bg5:           #2e2b26;
+
+      --border:        #2e2b26;
+      --border2:       #3a3630;
+
+      /* Warm text */
+      --text:          #f0ead8;
+      --text2:         #9e9484;
+      --text3:         #5a5248;
+      --text4:         #3d3830;
+
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', sans-serif;
+
+      --radius-sm: 6px;
+      --radius:    10px;
+      --radius-lg: 14px;
     }
 
     html { scroll-behavior: smooth; }
@@ -53,220 +71,225 @@
       position: sticky; top: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 2rem;
-      height: 60px;
-      background: rgba(8,8,8,0.85);
-      backdrop-filter: blur(12px);
+      height: 58px;
+      background: rgba(20,20,19,0.90);
+      backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
     }
 
     .nav-logo {
-      display: flex; align-items: center; gap: 0.5rem;
-      font-weight: 700; font-size: 1.05rem; letter-spacing: -0.02em;
+      display: flex; align-items: center; gap: 0.55rem;
+      font-weight: 700; font-size: 1rem; letter-spacing: -0.02em;
     }
 
-    .nav-logo-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--orange);
-      box-shadow: 0 0 8px var(--orange);
+    .nav-logo-icon {
+      width: 26px; height: 26px; border-radius: 7px;
+      background: var(--clay-glow);
+      border: 1px solid var(--clay-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
     }
 
     .nav-links {
-      display: flex; align-items: center; gap: 1.5rem;
-      font-size: 0.875rem; color: var(--text2);
+      display: flex; align-items: center; gap: 0.25rem;
+      font-size: 0.865rem; color: var(--text2);
     }
 
-    .nav-links a:hover { color: var(--text); }
+    .nav-links a {
+      padding: 0.3rem 0.65rem;
+      border-radius: var(--radius-sm);
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--bg3); }
+
+    .nav-right {
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+
+    .nav-badge {
+      padding: 0.2rem 0.6rem;
+      border-radius: 99px;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.03em;
+      background: var(--clay-glow);
+      border: 1px solid var(--clay-border);
+      color: var(--clay-light);
+    }
 
     .nav-github {
       display: flex; align-items: center; gap: 0.4rem;
       padding: 0.35rem 0.85rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
       font-size: 0.8rem;
       color: var(--text2);
-      transition: border-color 0.2s, color 0.2s;
+      transition: border-color 0.15s, color 0.15s;
     }
-
-    .nav-github:hover { border-color: var(--orange-border); color: var(--text); }
+    .nav-github:hover { border-color: var(--clay-border); color: var(--text); }
 
     /* ── HERO ── */
     .hero {
       display: flex; flex-direction: column; align-items: center;
       text-align: center;
-      padding: 7rem 1.5rem 5rem;
+      padding: 7rem 1.5rem 5.5rem;
       position: relative; overflow: hidden;
     }
 
     .hero::before {
       content: '';
-      position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
-      width: 700px; height: 400px;
-      background: radial-gradient(ellipse, rgba(249,115,22,0.12) 0%, transparent 70%);
+      position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 480px;
+      background: radial-gradient(ellipse at center top, rgba(204,120,92,0.10) 0%, transparent 65%);
       pointer-events: none;
     }
 
-    .badge {
-      display: inline-flex; align-items: center; gap: 0.4rem;
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
       padding: 0.3rem 0.9rem;
-      border: 1px solid var(--orange-border);
-      border-radius: 999px;
+      border: 1px solid var(--clay-border);
+      border-radius: 99px;
       font-size: 0.78rem; font-weight: 500;
-      color: var(--orange-light);
-      background: var(--orange-glow);
-      margin-bottom: 2rem;
-      letter-spacing: 0.02em;
+      color: var(--clay-light);
+      background: var(--clay-glow);
+      margin-bottom: 2.25rem;
+      letter-spacing: 0.015em;
     }
 
-    .badge-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--orange);
+    .hero-eyebrow-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--clay);
       animation: pulse 2s ease-in-out infinite;
-    }
-
-    .new-badge {
-      display: inline-flex; align-items: center;
-      padding: 0.15rem 0.55rem;
-      border-radius: 4px;
-      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em;
-      text-transform: uppercase;
-      background: var(--red-glow);
-      border: 1px solid var(--red-border);
-      color: var(--red-light);
-      vertical-align: middle;
-      margin-left: 0.35rem;
     }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
+      50%       { opacity: 0.35; }
     }
 
     h1 {
-      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
       font-weight: 800;
-      line-height: 1.1;
+      line-height: 1.08;
       letter-spacing: -0.04em;
-      max-width: 720px;
-      margin-bottom: 1.25rem;
+      max-width: 760px;
+      margin-bottom: 1.5rem;
+      color: var(--text);
     }
 
-    h1 span { color: var(--orange); }
+    h1 em { font-style: normal; color: var(--clay-light); }
 
     .hero-sub {
-      font-size: clamp(1rem, 2vw, 1.15rem);
+      font-size: clamp(1rem, 2vw, 1.1rem);
       color: var(--text2);
-      max-width: 560px;
-      line-height: 1.7;
-      margin-bottom: 2rem;
+      max-width: 520px;
+      line-height: 1.75;
+      margin-bottom: 2.25rem;
     }
 
-    .hero-pillars {
+    .hero-pills {
       display: flex; align-items: center; gap: 0.5rem;
       flex-wrap: wrap; justify-content: center;
-      margin-bottom: 2.5rem;
-      font-size: 0.82rem; color: var(--text3);
+      margin-bottom: 2.75rem;
     }
 
-    .hero-pillar {
+    .hero-pill {
       display: flex; align-items: center; gap: 0.4rem;
-      padding: 0.3rem 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      color: var(--text2);
-      background: var(--bg3);
+      padding: 0.28rem 0.75rem;
+      border: 1px solid var(--border2);
+      border-radius: 99px;
+      font-size: 0.8rem; color: var(--text2);
+      background: var(--bg2);
     }
 
-    .hero-pillar-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .pill-dot { width: 5px; height: 5px; border-radius: 50%; }
 
     .hero-ctas {
-      display: flex; align-items: center; gap: 1rem;
+      display: flex; align-items: center; gap: 0.85rem;
       flex-wrap: wrap; justify-content: center;
       margin-bottom: 3.5rem;
     }
 
     .btn-primary {
       display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.7rem 1.4rem;
-      background: var(--orange);
+      padding: 0.65rem 1.35rem;
+      background: var(--clay);
       color: #fff;
-      font-weight: 600; font-size: 0.9rem;
-      border-radius: 8px;
-      transition: background 0.2s, transform 0.15s;
+      font-weight: 600; font-size: 0.875rem;
+      border-radius: var(--radius);
+      transition: background 0.15s, transform 0.1s;
     }
-
-    .btn-primary:hover { background: var(--orange-dim); transform: translateY(-1px); }
+    .btn-primary:hover { background: var(--clay-dim); transform: translateY(-1px); }
 
     .btn-secondary {
       display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.7rem 1.4rem;
-      border: 1px solid var(--border);
+      padding: 0.65rem 1.35rem;
+      border: 1px solid var(--border2);
       color: var(--text2);
-      font-size: 0.9rem;
-      border-radius: 8px;
-      transition: border-color 0.2s, color 0.2s;
+      font-size: 0.875rem;
+      border-radius: var(--radius);
+      background: var(--bg2);
+      transition: border-color 0.15s, color 0.15s;
     }
+    .btn-secondary:hover { border-color: var(--clay-border); color: var(--text); }
 
-    .btn-secondary:hover { border-color: var(--orange-border); color: var(--text); }
-
-    /* ── INSTALL STRIP ── */
     .install-strip {
       display: flex; align-items: center; gap: 0.75rem;
-      padding: 0.6rem 1.25rem;
+      padding: 0.6rem 1.1rem;
       background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
       font-family: var(--mono);
-      font-size: 0.875rem;
-      color: var(--text2);
+      font-size: 0.855rem;
       cursor: pointer;
-      transition: border-color 0.2s;
-      position: relative;
+      transition: border-color 0.15s;
     }
-
-    .install-strip:hover { border-color: var(--orange-border); }
-    .install-strip .dollar { color: var(--orange); }
+    .install-strip:hover { border-color: var(--clay-border); }
+    .install-strip .dollar { color: var(--clay); }
     .install-strip .cmd { color: var(--text); }
 
     .copy-btn {
       display: flex; align-items: center;
-      padding: 0.25rem 0.6rem;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      font-size: 0.72rem;
+      padding: 0.2rem 0.55rem;
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      font-size: 0.7rem;
       color: var(--text3);
       background: var(--bg4);
       cursor: pointer;
       transition: all 0.15s;
       font-family: var(--sans);
     }
+    .copy-btn:hover { border-color: var(--clay-border); color: var(--clay-light); }
+    .copy-btn.copied { color: var(--green); border-color: rgba(93,172,126,0.35); }
 
-    .copy-btn:hover { border-color: var(--orange-border); color: var(--orange); }
-    .copy-btn.copied { color: #4ade80; border-color: rgba(74,222,128,0.3); }
+    /* ── DIVIDER ── */
+    .divider { border: none; border-top: 1px solid var(--border); }
 
     /* ── SECTIONS ── */
-    .section { padding: 5rem 1.5rem; max-width: 1000px; margin: 0 auto; }
+    .section { padding: 5rem 1.5rem; max-width: 1020px; margin: 0 auto; }
+    .section-sm { padding: 3.5rem 1.5rem; max-width: 1020px; margin: 0 auto; }
 
     .section-label {
-      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--orange);
-      margin-bottom: 0.75rem;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--clay);
+      margin-bottom: 0.65rem;
     }
 
-    .section-title {
-      font-size: clamp(1.6rem, 4vw, 2.4rem);
+    h2 {
+      font-size: clamp(1.55rem, 3.5vw, 2.35rem);
       font-weight: 800; letter-spacing: -0.03em;
       margin-bottom: 1rem;
+      line-height: 1.15;
     }
 
     .section-sub {
-      font-size: 1rem; color: var(--text2);
-      max-width: 540px; line-height: 1.7;
+      font-size: 0.975rem; color: var(--text2);
+      max-width: 520px; line-height: 1.75;
       margin-bottom: 3rem;
     }
 
     /* ── FLOW DIAGRAM ── */
     .flow {
-      display: flex; align-items: center;
+      display: flex; align-items: stretch;
       gap: 0; flex-wrap: wrap;
       justify-content: center;
     }
@@ -274,205 +297,186 @@
     .flow-step {
       display: flex; flex-direction: column; align-items: center;
       text-align: center;
-      padding: 1.5rem 1.25rem;
-      background: var(--bg3);
+      padding: 1.75rem 1.25rem;
+      background: var(--bg2);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      width: 180px;
+      border-radius: var(--radius-lg);
+      width: 186px;
       transition: border-color 0.2s;
     }
-
-    .flow-step:hover { border-color: var(--orange-border); }
+    .flow-step:hover { border-color: var(--clay-border); }
 
     .flow-icon {
-      width: 44px; height: 44px; border-radius: 10px;
-      background: var(--orange-glow);
-      border: 1px solid var(--orange-border);
+      width: 44px; height: 44px; border-radius: var(--radius);
+      background: var(--clay-glow);
+      border: 1px solid var(--clay-border);
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.25rem;
-      margin-bottom: 0.85rem;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
     }
 
-    .flow-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
-    .flow-desc  { font-size: 0.75rem; color: var(--text2); line-height: 1.5; }
+    .flow-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text); }
+    .flow-desc  { font-size: 0.75rem; color: var(--text2); line-height: 1.55; }
 
     .flow-arrow {
-      color: var(--orange);
-      font-size: 1.2rem;
-      padding: 0 0.5rem;
+      color: var(--text3);
+      font-size: 1rem;
+      padding: 0 0.6rem;
       flex-shrink: 0;
+      display: flex; align-items: center;
     }
 
-    /* ── ESCALATION SECTION ── */
+    /* ── ESCALATION ── */
     .escalation-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
-      margin-bottom: 3rem;
+      margin-bottom: 2.5rem;
     }
 
     .escalation-card {
-      padding: 1.5rem;
-      border-radius: 12px;
+      padding: 1.65rem;
+      border-radius: var(--radius-lg);
       border: 1px solid;
     }
+    .escalation-card.emergency { background: var(--red-glow); border-color: var(--red-border); }
+    .escalation-card.helpline  { background: var(--amber-glow); border-color: var(--amber-border); }
 
-    .escalation-card.emergency {
-      background: var(--red-glow);
-      border-color: var(--red-border);
-    }
-
-    .escalation-card.helpline {
-      background: var(--yellow-glow);
-      border-color: var(--yellow-border);
-    }
-
-    .escalation-tier {
-      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+    .esc-tier {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
       text-transform: uppercase; margin-bottom: 0.5rem;
     }
+    .emergency .esc-tier { color: var(--red-light); }
+    .helpline  .esc-tier { color: var(--amber); }
 
-    .escalation-card.emergency .escalation-tier { color: var(--red-light); }
-    .escalation-card.helpline  .escalation-tier { color: var(--yellow); }
+    .esc-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.55rem; }
 
-    .escalation-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
-    .escalation-trigger {
-      font-size: 0.78rem; color: var(--text2); margin-bottom: 1rem;
+    .esc-trigger {
+      font-size: 0.77rem; color: var(--text2); margin-bottom: 1rem;
       font-family: var(--mono);
-      padding: 0.4rem 0.7rem;
-      background: rgba(0,0,0,0.3);
+      padding: 0.35rem 0.7rem;
+      background: rgba(0,0,0,0.25);
       border-radius: 5px;
       display: inline-block;
     }
-    .escalation-action { font-size: 0.83rem; color: var(--text2); line-height: 1.6; }
-    .escalation-action strong { color: var(--text); }
 
-    .country-chips {
-      display: flex; flex-wrap: wrap; gap: 0.5rem;
-    }
+    .esc-action { font-size: 0.82rem; color: var(--text2); line-height: 1.65; }
+    .esc-action strong { color: var(--text); }
 
+    .country-chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
     .country-chip {
-      padding: 0.25rem 0.7rem;
+      padding: 0.22rem 0.65rem;
       border-radius: 5px;
-      font-size: 0.78rem; font-family: var(--mono);
-      background: var(--bg3); border: 1px solid var(--border);
+      font-size: 0.77rem; font-family: var(--mono);
+      background: var(--bg2); border: 1px solid var(--border);
       color: var(--text2);
     }
 
-    /* ── ROUTING TABLE ── */
-    .table-wrap {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-    }
+    /* ── TABLE ── */
+    .table-wrap { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
 
     table { width: 100%; border-collapse: collapse; }
 
     thead th {
-      padding: 0.85rem 1.25rem;
+      padding: 0.8rem 1.25rem;
       text-align: left;
-      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em;
       text-transform: uppercase; color: var(--text3);
-      background: var(--bg3);
+      background: var(--bg2);
       border-bottom: 1px solid var(--border);
     }
 
-    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--bg3); }
+    tbody tr:hover { background: var(--bg2); }
 
-    tbody td { padding: 0.85rem 1.25rem; font-size: 0.875rem; }
+    tbody td { padding: 0.8rem 1.25rem; font-size: 0.865rem; }
 
     .tag {
       display: inline-flex; align-items: center;
-      padding: 0.2rem 0.6rem;
+      padding: 0.18rem 0.6rem;
       border-radius: 5px;
-      font-family: var(--mono); font-size: 0.78rem;
-      background: var(--bg4); border: 1px solid var(--border);
-      color: var(--orange-light);
+      font-family: var(--mono); font-size: 0.77rem;
+      background: var(--bg4); border: 1px solid var(--border2);
+      color: var(--clay-light);
     }
 
     .model-badge {
       display: inline-flex; align-items: center; gap: 0.35rem;
-      padding: 0.2rem 0.65rem;
+      padding: 0.18rem 0.6rem;
       border-radius: 5px;
-      font-size: 0.78rem; font-weight: 500;
+      font-size: 0.77rem; font-weight: 500;
       background: var(--bg4); border: 1px solid var(--border);
+      color: var(--text);
     }
 
-    .acc-bar {
-      display: flex; align-items: center; gap: 0.6rem;
-    }
-
-    .acc-track {
-      flex: 1; height: 4px; background: var(--bg4); border-radius: 2px; max-width: 80px;
-    }
-
-    .acc-fill {
-      height: 100%; border-radius: 2px;
-      background: linear-gradient(90deg, var(--orange-dim), var(--orange));
-    }
-
-    .acc-num { font-size: 0.8rem; color: var(--text2); font-family: var(--mono); }
+    .acc-bar { display: flex; align-items: center; gap: 0.6rem; }
+    .acc-track { flex: 1; height: 3px; background: var(--bg5); border-radius: 2px; max-width: 70px; }
+    .acc-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--clay-dim), var(--clay)); }
+    .acc-num { font-size: 0.78rem; color: var(--text2); font-family: var(--mono); min-width: 40px; }
 
     /* ── CODE TABS ── */
-    .tabs { display: flex; gap: 0.35rem; margin-bottom: 0; }
+    .tabs { display: flex; gap: 0.25rem; margin-bottom: 0; }
 
     .tab {
-      padding: 0.5rem 1rem;
+      padding: 0.45rem 0.95rem;
       font-size: 0.8rem; font-weight: 500;
-      border-radius: 7px 7px 0 0;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
       border: 1px solid var(--border);
       border-bottom: none;
       color: var(--text3);
       cursor: pointer;
-      background: var(--bg3);
-      transition: all 0.15s;
+      background: var(--bg2);
+      transition: all 0.12s;
+      white-space: nowrap;
     }
-
     .tab.active {
-      background: var(--bg4);
-      color: var(--orange);
-      border-color: var(--orange-border);
+      background: var(--bg3);
+      color: var(--clay-light);
+      border-color: var(--clay-border);
     }
 
     .code-block {
       background: var(--bg3);
       border: 1px solid var(--border);
-      border-radius: 0 10px 10px 10px;
+      border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg);
       overflow: hidden;
     }
+    .code-block.rounded { border-radius: var(--radius-lg); }
 
     .code-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0.6rem 1rem;
+      padding: 0.55rem 1rem;
       border-bottom: 1px solid var(--border);
       background: var(--bg4);
     }
 
-    .code-dots { display: flex; gap: 0.35rem; }
+    .code-dots { display: flex; gap: 0.32rem; }
     .code-dot  { width: 10px; height: 10px; border-radius: 50%; }
     .code-dot:nth-child(1) { background: #ff5f57; }
     .code-dot:nth-child(2) { background: #febc2e; }
     .code-dot:nth-child(3) { background: #28c840; }
 
-    .code-lang { font-size: 0.72rem; color: var(--text3); font-family: var(--mono); }
+    .code-lang { font-size: 0.7rem; color: var(--text3); font-family: var(--mono); }
 
     pre {
       padding: 1.5rem;
       font-family: var(--mono);
-      font-size: 0.83rem;
-      line-height: 1.75;
+      font-size: 0.82rem;
+      line-height: 1.8;
       overflow-x: auto;
-      color: #e4e4e7;
+      color: #ddd6c8;
+      tab-size: 2;
     }
 
-    .kw  { color: #fb923c; }
-    .fn  { color: #fbbf24; }
-    .st  { color: #86efac; }
-    .cm  { color: #52525b; font-style: italic; }
-    .nm  { color: #93c5fd; }
-    .op  { color: #f4f4f5; }
+    .kw  { color: var(--clay-light); }
+    .fn  { color: #e8c872; }
+    .st  { color: #8ecf9e; }
+    .cm  { color: #4a4540; font-style: italic; }
+    .nm  { color: #9dc5e8; }
+    .op  { color: var(--text); }
+    .ky  { color: #c594d4; }
+    .nu  { color: #b8d4a8; }
 
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
@@ -480,77 +484,155 @@
     /* ── FEATURES GRID ── */
     .features {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--border);
     }
 
     .feature-card {
-      padding: 1.5rem;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      transition: border-color 0.2s, transform 0.2s;
+      padding: 1.75rem;
+      background: var(--bg2);
+      transition: background 0.15s;
     }
-
-    .feature-card:hover { border-color: var(--orange-border); transform: translateY(-2px); }
-    .feature-card.highlight { border-color: var(--orange-border); background: var(--bg3); }
+    .feature-card:hover { background: var(--bg3); }
+    .feature-card.span2 { grid-column: span 2; }
 
     .feature-icon {
-      font-size: 1.5rem; margin-bottom: 0.85rem;
-      width: 42px; height: 42px;
+      font-size: 1.3rem; margin-bottom: 1rem;
+      width: 40px; height: 40px;
       display: flex; align-items: center; justify-content: center;
-      background: var(--orange-glow);
-      border: 1px solid var(--orange-border);
-      border-radius: 9px;
+      background: var(--clay-subtle);
+      border: 1px solid var(--clay-border);
+      border-radius: var(--radius);
     }
 
-    .feature-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
-    .feature-desc  { font-size: 0.83rem; color: var(--text2); line-height: 1.6; }
+    .feature-title { font-size: 0.925rem; font-weight: 600; margin-bottom: 0.45rem; color: var(--text); }
+    .feature-desc  { font-size: 0.815rem; color: var(--text2); line-height: 1.65; }
+
+    .feature-new {
+      display: inline-flex; align-items: center;
+      padding: 0.12rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--clay-glow);
+      border: 1px solid var(--clay-border);
+      color: var(--clay-light);
+      vertical-align: middle;
+      margin-left: 0.3rem;
+    }
 
     /* ── PROVIDERS ── */
-    .providers {
-      display: flex; flex-wrap: wrap; gap: 0.75rem;
-      justify-content: center;
-    }
+    .providers { display: flex; flex-wrap: wrap; gap: 0.65rem; justify-content: center; }
 
     .provider-chip {
       display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.6rem 1.1rem;
-      background: var(--bg3);
+      padding: 0.55rem 1rem;
+      background: var(--bg2);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.85rem; font-weight: 500;
-      transition: border-color 0.2s;
+      border-radius: var(--radius);
+      font-size: 0.845rem; font-weight: 500;
+      transition: border-color 0.15s;
     }
+    .provider-chip:hover { border-color: var(--clay-border); }
+    .provider-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--clay); }
 
-    .provider-chip:hover { border-color: var(--orange-border); }
-    .provider-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); }
+    /* ── CONFIG TABLE ── */
+    .config-table { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+
+    .config-table table { width: 100%; border-collapse: collapse; }
+    .config-table thead th {
+      padding: 0.75rem 1.1rem;
+      text-align: left;
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--text3);
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+    }
+    .config-table tbody tr { border-bottom: 1px solid var(--border); }
+    .config-table tbody tr:last-child { border-bottom: none; }
+    .config-table tbody tr:hover { background: var(--bg2); }
+    .config-table tbody td { padding: 0.75rem 1.1rem; font-size: 0.835rem; }
+    .config-table .env-key { font-family: var(--mono); font-size: 0.77rem; color: var(--clay-light); }
+    .config-table .env-default { font-family: var(--mono); font-size: 0.75rem; color: var(--text3); }
+    .config-table .env-desc { color: var(--text2); line-height: 1.5; }
+
+    /* ── CHANGELOG ── */
+    .changelog { display: flex; flex-direction: column; gap: 0; }
+
+    .changelog-item {
+      display: flex; gap: 1.5rem;
+      padding: 2rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .changelog-item:last-child { border-bottom: none; }
+
+    .changelog-meta { min-width: 120px; flex-shrink: 0; }
+
+    .changelog-version {
+      font-family: var(--mono); font-size: 0.8rem; font-weight: 600;
+      color: var(--clay-light); margin-bottom: 0.3rem;
+    }
+    .changelog-date { font-size: 0.75rem; color: var(--text3); }
+
+    .changelog-body h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .changelog-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+
+    .changelog-tag {
+      padding: 0.15rem 0.55rem;
+      border-radius: 4px;
+      font-size: 0.7rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .changelog-tag.new     { background: rgba(93,172,126,0.1); color: var(--green); border: 1px solid rgba(93,172,126,0.25); }
+    .changelog-tag.fix     { background: var(--red-glow); color: var(--red-light); border: 1px solid var(--red-border); }
+    .changelog-tag.improve { background: var(--clay-glow); color: var(--clay-light); border: 1px solid var(--clay-border); }
+
+    .changelog-list { list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
+    .changelog-list li {
+      font-size: 0.845rem; color: var(--text2); line-height: 1.55;
+      display: flex; gap: 0.6rem;
+    }
+    .changelog-list li::before { content: "—"; color: var(--text3); flex-shrink: 0; }
+    .changelog-list li strong { color: var(--text); }
 
     /* ── INSTALL SECTION ── */
     .install-section {
       text-align: center;
-      padding: 5rem 1.5rem;
-      background: linear-gradient(180deg, transparent, rgba(249,115,22,0.04), transparent);
+      padding: 5.5rem 1.5rem;
+      background: linear-gradient(180deg, transparent, rgba(204,120,92,0.035), transparent);
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
     }
 
-    .install-commands {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 0.6rem; margin-top: 2rem;
+    .install-cols {
+      display: flex; gap: 1.5rem;
+      margin-top: 2.5rem; max-width: 920px;
+      margin-left: auto; margin-right: auto;
+      flex-wrap: wrap; text-align: left;
+    }
+
+    .install-col-commands { flex: 1; min-width: 240px; }
+    .install-col-output   { flex: 1.4; min-width: 320px; }
+
+    .col-label {
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text3); margin-bottom: 0.75rem;
     }
 
     .cmd-line {
       display: flex; align-items: center; gap: 0.75rem;
-      padding: 0.65rem 1.25rem;
+      padding: 0.6rem 1.1rem;
       background: var(--bg3);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      font-family: var(--mono); font-size: 0.85rem;
-      width: 100%; max-width: 480px;
+      border-radius: var(--radius);
+      font-family: var(--mono); font-size: 0.82rem;
+      margin-bottom: 0.5rem;
     }
-
-    .cmd-line .dollar { color: var(--orange); }
+    .cmd-line .dollar { color: var(--clay); }
 
     /* ── FOOTER ── */
     footer {
@@ -560,29 +642,35 @@
       flex-wrap: wrap; gap: 1.5rem;
     }
 
-    .footer-logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
+    .footer-logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.95rem; }
+    .footer-links { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+    .footer-links a { font-size: 0.83rem; color: var(--text3); transition: color 0.12s; }
+    .footer-links a:hover { color: var(--clay-light); }
+    .footer-copy { font-size: 0.78rem; color: var(--text3); }
 
-    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
-    .footer-links a { font-size: 0.85rem; color: var(--text3); transition: color 0.15s; }
-    .footer-links a:hover { color: var(--orange); }
-
-    .footer-copy { font-size: 0.8rem; color: var(--text3); }
-
-    /* ── DIVIDER ── */
-    .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+    /* ── INLINE CODE ── */
+    code {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      color: var(--clay-light);
+      background: var(--clay-subtle);
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+    }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       .section { padding: 3.5rem 1.25rem; }
-      .flow-step { width: 160px; }
       .escalation-grid { grid-template-columns: 1fr; }
+      .changelog-item { flex-direction: column; gap: 0.75rem; }
+      .changelog-meta { min-width: unset; display: flex; gap: 1rem; align-items: baseline; }
     }
 
     @media (max-width: 640px) {
       nav { padding: 0 1rem; }
-      .nav-links a:not(.nav-github) { display: none; }
+      .nav-links a:not(.nav-github):not(:last-of-type) { display: none; }
 
-      .hero { padding: 4rem 1rem 3rem; }
+      .hero { padding: 4rem 1.1rem 3rem; }
       .hero-ctas { flex-direction: column; width: 100%; }
       .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
       .install-strip { width: 100%; }
@@ -595,31 +683,24 @@
       .flow-arrow { transform: rotate(90deg); }
 
       .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      table { min-width: 460px; }
+      table { min-width: 480px; }
 
       .tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
-      .tab { white-space: nowrap; flex-shrink: 0; padding: 0.45rem 0.75rem; font-size: 0.75rem; }
-      pre { font-size: 0.76rem; padding: 1.1rem; }
+      .tab { flex-shrink: 0; padding: 0.4rem 0.7rem; font-size: 0.75rem; }
+      pre { font-size: 0.75rem; padding: 1.1rem; }
 
-      .features { grid-template-columns: 1fr; }
+      .features { grid-template-columns: 1fr !important; }
+      .feature-card.span2 { grid-column: span 1; }
 
-      .providers { gap: 0.5rem; }
-      .provider-chip { font-size: 0.8rem; padding: 0.5rem 0.85rem; }
-
-      .install-cols { flex-direction: column !important; }
-      .install-col-commands,
-      .install-col-output { min-width: unset !important; width: 100% !important; flex: unset !important; }
-
+      .install-cols { flex-direction: column; }
+      .install-col-commands, .install-col-output { min-width: unset; width: 100%; flex: unset; }
       .install-section { padding: 3.5rem 1rem; }
-      .cmd-line { font-size: 0.8rem; }
 
       footer { flex-direction: column; align-items: flex-start; padding: 2rem 1rem; gap: 1rem; }
-      .footer-links { gap: 1rem; flex-wrap: wrap; }
     }
 
     @media (max-width: 400px) {
-      h1 { font-size: 2rem; }
-      .install-strip .cmd { font-size: 0.78rem; }
+      h1 { font-size: 2.1rem; }
     }
   </style>
 </head>
@@ -628,16 +709,17 @@
 <!-- ── NAV ── -->
 <nav>
   <a href="#" class="nav-logo">
-    <div class="nav-logo-dot"></div>
+    <div class="nav-logo-icon">🛡️</div>
     SafetyRouter
   </a>
   <div class="nav-links">
     <a href="#how-it-works">How it works</a>
     <a href="#crisis">Crisis Safety</a>
-    <a href="#features">Features</a>
     <a href="#code">Docs</a>
+    <a href="#config">Config</a>
+    <a href="#changelog">Changelog</a>
     <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="nav-github">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
       GitHub
     </a>
   </div>
@@ -645,50 +727,52 @@
 
 <!-- ── HERO ── -->
 <section class="hero">
-  <div class="badge">
-    <div class="badge-dot"></div>
+  <div class="hero-eyebrow">
+    <div class="hero-eyebrow-dot"></div>
     Open Source &nbsp;·&nbsp; v0.2.3 &nbsp;·&nbsp; Apache 2.0
   </div>
 
-  <h1>Safety-Aware<br/><span>LLM Routing.</span></h1>
+  <h1>Route every prompt to the<br/><em>safest possible answer.</em></h1>
 
   <p class="hero-sub">
-    Detects bias type and mental health risk locally at zero API cost,
-    routes to the model best equipped to respond fairly,
+    SafetyRouter classifies bias type and mental health risk locally at zero API cost,
+    routes to the model with the highest benchmark accuracy for that category,
     and escalates to crisis services when a human is the right answer.
   </p>
 
-  <div class="hero-pillars">
-    <div class="hero-pillar">
-      <div class="hero-pillar-dot" style="background:var(--orange)"></div>
-      Bias Detection
+  <div class="hero-pills">
+    <div class="hero-pill">
+      <div class="pill-dot" style="background:var(--clay)"></div>
+      9 bias categories
     </div>
-    <div style="color:var(--text3)">+</div>
-    <div class="hero-pillar">
-      <div class="hero-pillar-dot" style="background:var(--yellow)"></div>
-      Mental Health Risk
+    <div class="hero-pill">
+      <div class="pill-dot" style="background:var(--amber)"></div>
+      4 mental health signals
     </div>
-    <div style="color:var(--text3)">+</div>
-    <div class="hero-pillar">
-      <div class="hero-pillar-dot" style="background:var(--red)"></div>
-      Human Escalation
+    <div class="hero-pill">
+      <div class="pill-dot" style="background:var(--red)"></div>
+      2-tier crisis escalation
+    </div>
+    <div class="hero-pill">
+      <div class="pill-dot" style="background:var(--green)"></div>
+      Bias rephrasing
     </div>
   </div>
 
   <div class="hero-ctas">
     <a href="#code" class="btn-primary">
       Get Started
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </a>
     <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="btn-secondary">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
       View on GitHub
     </a>
   </div>
 
   <div class="install-strip" onclick="copyInstall(this)">
     <span class="dollar">$</span>
-    <span class="cmd">pip install safetyrouter</span>
+    <span class="cmd">pip install "safetyrouter[all]"</span>
     <span style="flex:1"></span>
     <button class="copy-btn" id="copy-hero">Copy</button>
   </div>
@@ -699,35 +783,35 @@
 <!-- ── HOW IT WORKS ── -->
 <section class="section" id="how-it-works">
   <div class="section-label">How it works</div>
-  <h2 class="section-title">A safer path to a fairer answer</h2>
+  <h2>A safer path to a fairer answer</h2>
   <p class="section-sub">
-    Every prompt is classified locally for both bias and mental health risk before
-    a single API call is made. The router then escalates or routes accordingly.
+    Every prompt is classified locally for bias and mental health risk before any API call is made.
+    The router decides whether to escalate, route to a specialist model, or answer normally.
   </p>
 
   <div class="flow">
     <div class="flow-step">
       <div class="flow-icon">📝</div>
       <div class="flow-title">Your Prompt</div>
-      <div class="flow-desc">Send any question or text to SafetyRouter</div>
+      <div class="flow-desc">Any text sent to SafetyRouter via SDK, CLI, or HTTP</div>
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step">
-      <div class="flow-icon">🛡️</div>
-      <div class="flow-title">Safety Classified</div>
-      <div class="flow-desc">9 bias + 4 mental health signals scored locally — zero API cost</div>
+      <div class="flow-icon">🔍</div>
+      <div class="flow-title">Local Classify</div>
+      <div class="flow-desc">gemma3n:e2b scores 9 bias + 4 mental health signals on-device — zero API cost</div>
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step">
       <div class="flow-icon">🔀</div>
-      <div class="flow-title">Smart Routing</div>
-      <div class="flow-desc">Escalates to crisis services, or routes to the best model for that bias</div>
+      <div class="flow-title">Route or Escalate</div>
+      <div class="flow-desc">Emergency → skip LLM, show crisis line. Helpline → LLM + appended helpline. Otherwise → bias-specialist model</div>
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step">
       <div class="flow-icon">✅</div>
       <div class="flow-title">Safe Response</div>
-      <div class="flow-desc">Fair answer + rephrased bias-free version of your prompt — or crisis resources if needed</div>
+      <div class="flow-desc">Fair answer + rephrased bias-free text, or crisis resources if needed</div>
     </div>
   </div>
 </section>
@@ -737,38 +821,33 @@
 <!-- ── CRISIS ESCALATION ── -->
 <section class="section" id="crisis">
   <div class="section-label">Crisis Safety</div>
-  <h2 class="section-title">Two-tier human escalation</h2>
+  <h2>Two-tier human escalation</h2>
   <p class="section-sub">
     When the mental health classifier detects risk, SafetyRouter steps aside.
-    Emergency signals skip the LLM entirely and surface crisis resources immediately.
     All classification runs locally — no risk signals leave your machine.
   </p>
 
   <div class="escalation-grid">
     <div class="escalation-card emergency">
-      <div class="escalation-tier">Tier 1 — Emergency</div>
-      <div class="escalation-title">LLM skipped entirely</div>
-      <div class="escalation-trigger">self_harm ≥ 0.70</div>
-      <div class="escalation-action">
-        <strong>No model is called.</strong> A red crisis box is shown with the
-        local emergency number and crisis helpline for the user's country.
-        Session transcript is saved to <code style="color:var(--orange-light);font-size:0.8em">~/.safetyrouter/sessions/</code>.
+      <div class="esc-tier">Tier 1 — Emergency</div>
+      <div class="esc-title">LLM skipped entirely</div>
+      <div class="esc-trigger">self_harm ≥ 0.70</div>
+      <div class="esc-action">
+        <strong>No model is called.</strong> A crisis block is returned with the local emergency number and helpline for the user's country. Session transcript is saved to <code>~/.safetyrouter/sessions/</code> with <code>0o600</code> permissions.
       </div>
     </div>
     <div class="escalation-card helpline">
-      <div class="escalation-tier">Tier 2 — Helpline</div>
-      <div class="escalation-title">LLM responds + helpline appended</div>
-      <div class="escalation-trigger">severe_distress or existential_crisis ≥ 0.60</div>
-      <div class="escalation-action">
-        <strong>Normal routing proceeds.</strong> The LLM response is returned,
-        with the crisis helpline number and webchat link shown subtly below.
-        The user gets both a helpful answer and a path to human support.
+      <div class="esc-tier">Tier 2 — Helpline</div>
+      <div class="esc-title">LLM responds + helpline appended</div>
+      <div class="esc-trigger">severe_distress or existential_crisis ≥ 0.60</div>
+      <div class="esc-action">
+        <strong>Normal routing proceeds.</strong> The LLM response is returned with the crisis helpline number and webchat link appended below — the user gets both a helpful answer and a path to human support.
       </div>
     </div>
   </div>
 
-  <div style="margin-bottom:1.5rem">
-    <div style="font-size:0.75rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text3); margin-bottom:0.85rem;">Built-in crisis resources for 15 countries</div>
+  <div style="margin-bottom:1.25rem">
+    <div class="col-label" style="margin-bottom:0.75rem">Built-in crisis resources for 15 countries</div>
     <div class="country-chips">
       <span class="country-chip">🇺🇸 US — 988</span>
       <span class="country-chip">🇬🇧 UK — 116 123</span>
@@ -785,7 +864,7 @@
       <span class="country-chip">🇸🇬 SG — 1800 221 4444</span>
       <span class="country-chip">🇮🇪 IE — 116 123</span>
       <span class="country-chip">🇲🇾 MY — 015-4882 3500</span>
-      <span class="country-chip" style="border-style:dashed;color:var(--text3)">+ PRs welcome</span>
+      <span class="country-chip" style="border-style:dashed; color:var(--text3)">+ PRs welcome</span>
     </div>
   </div>
 </section>
@@ -795,11 +874,12 @@
 <!-- ── ROUTING TABLE ── -->
 <section class="section">
   <div class="section-label">Routing Table</div>
-  <h2 class="section-title">Every bias type has a specialist</h2>
+  <h2>Every bias type has a specialist</h2>
   <p class="section-sub">
-    Routing decisions are backed by benchmark accuracy scores from the
-    <a href="https://github.com/rdxvicky/llm-bias-evaluator" target="_blank" style="color:var(--orange)">LLM Bias Evaluator</a>
-    — 270 samples across 9 categories. The table is fully configurable — bring your own mappings.
+    Routing decisions are backed by benchmark accuracy from the
+    <a href="https://github.com/rdxvicky/llm-bias-evaluator" target="_blank" style="color:var(--clay-light)">LLM Bias Evaluator</a>
+    — 270 samples across 9 categories (StereoSet, CrowS-Pairs, BBQ, HolisticBias, BOLD).
+    Override any mapping with <code>SR_CUSTOM_ROUTING</code>.
   </p>
 
   <div class="table-wrap">
@@ -808,53 +888,63 @@
         <tr>
           <th>Bias Category</th>
           <th>Routed To</th>
+          <th>Model</th>
           <th>Accuracy</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td><span class="tag">gender</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>GPT-4</span></td>
+          <td><span class="model-badge">GPT-4</span></td>
+          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">gpt-4o</td>
           <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
         </tr>
         <tr>
           <td><span class="tag">disability</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>GPT-4</span></td>
+          <td><span class="model-badge">GPT-4</span></td>
+          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">gpt-4o</td>
           <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:100%"></div></div><span class="acc-num">100%</span></div></td>
         </tr>
         <tr>
           <td><span class="tag">religion</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>GPT-4</span></td>
+          <td><span class="model-badge">GPT-4</span></td>
+          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">gpt-4o</td>
           <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
         </tr>
         <tr>
           <td><span class="tag">race</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
+          <td><span class="model-badge">Claude</span></td>
+          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">claude-opus-4-5</td>
           <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:83.3%"></div></div><span class="acc-num">83.3%</span></div></td>
         </tr>
         <tr>
           <td><span class="tag">age</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
+          <td><span class="model-badge">Claude</span></td>
+          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">claude-opus-4-5</td>
           <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:100%"></div></div><span class="acc-num">100%</span></div></td>
         </tr>
         <tr>
           <td><span class="tag">sexual_orientation</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
+          <td><span class="model-badge">Claude</span></td>
+          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">claude-opus-4-5</td>
           <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:83.3%"></div></div><span class="acc-num">83.3%</span></div></td>
         </tr>
         <tr>
           <td><span class="tag">socioeconomic_status</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>Claude</span></td>
+          <td><span class="model-badge">Claude</span></td>
+          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">claude-opus-4-5</td>
           <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
         </tr>
         <tr>
           <td><span class="tag">nationality</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>Gemini</span></td>
+          <td><span class="model-badge">Gemini</span></td>
+          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">gemini-2.0-flash</td>
           <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
         </tr>
         <tr>
           <td><span class="tag">physical_appearance</span></td>
-          <td><span class="model-badge"><span class="provider-dot"></span>Gemini</span></td>
+          <td><span class="model-badge">Gemini</span></td>
+          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">gemini-2.0-flash</td>
           <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:100%"></div></div><span class="acc-num">100%</span></div></td>
         </tr>
       </tbody>
@@ -866,14 +956,15 @@
 
 <!-- ── CODE EXAMPLES ── -->
 <section class="section" id="code">
-  <div class="section-label">Quick Start</div>
-  <h2 class="section-title">Three ways to use it</h2>
-  <p class="section-sub">Python SDK, CLI, or drop it behind an HTTP server. Pick what fits your stack.</p>
+  <div class="section-label">Documentation</div>
+  <h2>Three ways to use SafetyRouter</h2>
+  <p class="section-sub">Python SDK for embedding in applications, CLI for quick testing, or HTTP server to drop behind any stack.</p>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab('sdk', this)">Python SDK</div>
     <div class="tab" onclick="switchTab('cli', this)">CLI</div>
     <div class="tab" onclick="switchTab('http', this)">HTTP Server</div>
+    <div class="tab" onclick="switchTab('stream', this)">Streaming</div>
     <div class="tab" onclick="switchTab('local', this)">Fully Local</div>
   </div>
 
@@ -886,137 +977,241 @@
     <!-- SDK -->
     <div class="tab-panel active" id="panel-sdk">
 <pre><span class="kw">import</span> asyncio
-<span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>
+<span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>, <span class="nm">SafetyRouterConfig</span>
 
-<span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>()  <span class="cm"># reads API keys from environment</span>
+<span class="cm"># Reads OPENAI_API_KEY / ANTHROPIC_API_KEY / GOOGLE_API_KEY from environment</span>
+<span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>()
 
 <span class="kw">async def</span> <span class="fn">main</span>():
-    <span class="nm">response</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="st">"Should women be paid less than men?"</span>)
+    <span class="cm"># Basic usage — classify + route + get response</span>
+    <span class="nm">r</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="st">"Should women be paid less than men?"</span>)
 
-    <span class="fn">print</span>(<span class="nm">response</span>.bias_category)   <span class="cm"># "gender"</span>
-    <span class="fn">print</span>(<span class="nm">response</span>.selected_model)  <span class="cm"># "gpt4"</span>
-    <span class="fn">print</span>(<span class="nm">response</span>.confidence)      <span class="cm"># 0.92</span>
-    <span class="fn">print</span>(<span class="nm">response</span>.content)         <span class="cm"># unbiased answer from GPT-4</span>
+    <span class="fn">print</span>(<span class="nm">r</span>.bias_category)   <span class="cm"># "gender"</span>
+    <span class="fn">print</span>(<span class="nm">r</span>.selected_model)  <span class="cm"># "gpt4"</span>
+    <span class="fn">print</span>(<span class="nm">r</span>.confidence)      <span class="cm"># 0.92</span>
+    <span class="fn">print</span>(<span class="nm">r</span>.model_accuracy)   <span class="cm"># 96.7</span>
+    <span class="fn">print</span>(<span class="nm">r</span>.content)         <span class="cm"># LLM answer</span>
+    <span class="fn">print</span>(<span class="nm">r</span>.response_time)    <span class="cm"># 2.341 (seconds, float)</span>
 
-<span class="cm"># Handle crisis escalation</span>
-<span class="kw">async def</span> <span class="fn">safe_route</span>(<span class="nm">text</span>):
-    <span class="nm">response</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="nm">text</span>)
+    <span class="cm"># Bias rephrasing — always present in bias_analysis</span>
+    <span class="nm">rephrase</span> <span class="op">=</span> <span class="nm">r</span>.bias_analysis[<span class="st">"rephrased_text"</span>]
+    <span class="fn">print</span>(<span class="nm">rephrase</span>[<span class="st">"rephrased"</span>])        <span class="cm"># "Should all employees receive equal pay?"</span>
+    <span class="fn">print</span>(<span class="nm">rephrase</span>[<span class="st">"changes_made"</span>])      <span class="cm"># ["Removed gender reference"]</span>
+    <span class="fn">print</span>(<span class="nm">rephrase</span>[<span class="st">"meaning_preserved"</span>])  <span class="cm"># True</span>
 
-    <span class="kw">if</span> <span class="nm">response</span>.escalation_type <span class="op">==</span> <span class="st">"emergency"</span>:
-        <span class="cm"># LLM was skipped — show crisis resources only</span>
-        <span class="fn">print</span>(<span class="nm">response</span>.escalation_message)       <span class="cm"># emergency number + line</span>
-        <span class="fn">print</span>(<span class="nm">response</span>.session_transcript_path)  <span class="cm"># saved to ~/.safetyrouter/sessions/</span>
+    <span class="cm"># Handle crisis escalation</span>
+    <span class="kw">if</span> <span class="nm">r</span>.escalation_type <span class="op">==</span> <span class="st">"emergency"</span>:
+        <span class="cm"># LLM was NOT called — only crisis info is returned</span>
+        <span class="fn">print</span>(<span class="nm">r</span>.escalation_number)         <span class="cm"># "988"</span>
+        <span class="fn">print</span>(<span class="nm">r</span>.escalation_service)        <span class="cm"># "988 Suicide & Crisis Lifeline"</span>
+        <span class="fn">print</span>(<span class="nm">r</span>.escalation_webchat)        <span class="cm"># "https://988lifeline.org/chat"</span>
+        <span class="fn">print</span>(<span class="nm">r</span>.session_transcript_path)   <span class="cm"># "~/.safetyrouter/sessions/2025-..."</span>
 
-    <span class="kw">elif</span> <span class="nm">response</span>.escalation_type <span class="op">==</span> <span class="st">"helpline"</span>:
-        <span class="cm"># LLM responded + helpline attached</span>
-        <span class="fn">print</span>(<span class="nm">response</span>.content)
-        <span class="fn">print</span>(<span class="nm">response</span>.escalation_message)       <span class="cm"># "Support line: 988 — ..."</span>
+    <span class="kw">elif</span> <span class="nm">r</span>.escalation_type <span class="op">==</span> <span class="st">"helpline"</span>:
+        <span class="cm"># LLM responded — helpline info also available</span>
+        <span class="fn">print</span>(<span class="nm">r</span>.content)                   <span class="cm"># LLM answer</span>
+        <span class="fn">print</span>(<span class="nm">r</span>.escalation_message)        <span class="cm"># "Support line: 988 — ..."</span>
 
-    <span class="kw">else</span>:
-        <span class="fn">print</span>(<span class="nm">response</span>.content)
-
-<span class="cm"># Dry run — classify only, zero API cost</span>
-<span class="kw">async def</span> <span class="fn">inspect</span>():
-    <span class="nm">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="st">"text"</span>, execute<span class="op">=</span><span class="kw">False</span>)
-    <span class="fn">print</span>(<span class="nm">result</span>.bias_category)         <span class="cm"># bias classification</span>
-    <span class="fn">print</span>(<span class="nm">result</span>.mental_health_scores)   <span class="cm"># {"self_harm": 0.02, ...}</span>
+    <span class="cm"># Classify only — zero API cost, no LLM call</span>
+    <span class="nm">dry</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="st">"I feel worthless."</span>, execute<span class="op">=</span><span class="kw">False</span>)
+    <span class="fn">print</span>(<span class="nm">dry</span>.mental_health_scores)
+    <span class="cm"># {"self_harm": 0.62, "severe_distress": 0.78, "existential_crisis": 0.41, ...}</span>
 
 asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
     </div>
 
     <!-- CLI -->
     <div class="tab-panel" id="panel-cli">
-<pre><span class="cm"># First-time setup — Ollama + classifier + user profile + API keys</span>
+<pre><span class="cm"># First-time setup — Ollama + classifier model + user profile + API keys</span>
 <span class="dollar">$</span> safetyrouter setup
 
-<span class="cm"># Route — outputs structured JSON with bias scores + rephrased text</span>
+<span class="cm"># Route — outputs structured JSON by default</span>
 <span class="dollar">$</span> safetyrouter route <span class="st">"Should people be judged by their race?"</span>
 
 {
   <span class="st">"routing_decision"</span>: {
     <span class="st">"selected_model"</span>: <span class="st">"claude"</span>,
     <span class="st">"bias_category"</span>: <span class="st">"race"</span>,
-    <span class="st">"confidence"</span>: <span class="nm">0.8</span>,
-    <span class="st">"model_accuracy"</span>: <span class="nm">83.3</span>,
+    <span class="st">"confidence"</span>: <span class="nu">0.85</span>,
+    <span class="st">"model_accuracy"</span>: <span class="nu">83.3</span>,
     <span class="st">"reason"</span>: <span class="st">"Routed to claude for 'race' bias (benchmark accuracy: 83.3%)"</span>,
     <span class="st">"message_content"</span>: <span class="st">"No, people should not be judged by their race..."</span>
   },
   <span class="st">"bias_analysis"</span>: {
-    <span class="st">"race"</span>: { <span class="st">"probability"</span>: <span class="nm">0.8</span> },
-    <span class="st">"gender"</span>: { <span class="st">"probability"</span>: <span class="nm">0.02</span> },
-    <span class="cm">... other categories ...</span>
-    <span class="st">"highest_probability_category"</span>: { <span class="st">"category"</span>: <span class="st">"race"</span>, <span class="st">"probability"</span>: <span class="nm">0.8</span> },
+    <span class="st">"race"</span>:    { <span class="st">"probability"</span>: <span class="nu">0.85</span> },
+    <span class="st">"gender"</span>:  { <span class="st">"probability"</span>: <span class="nu">0.02</span> },
+    <span class="st">"age"</span>:     { <span class="st">"probability"</span>: <span class="nu">0.01</span> },
+    <span class="st">"highest_probability_category"</span>: {
+      <span class="st">"category"</span>: <span class="st">"race"</span>, <span class="st">"probability"</span>: <span class="nu">0.85</span>
+    },
     <span class="st">"rephrased_text"</span>: {
-      <span class="st">"original"</span>: <span class="st">"Should people be judged by their race?"</span>,
-      <span class="st">"rephrased"</span>: <span class="st">"Should people be judged by their individual character?"</span>,
-      <span class="st">"changes_made"</span>: [<span class="st">"Replaced 'race' with 'individual character'"</span>],
-      <span class="st">"meaning_preserved"</span>: <span class="kw">true</span>
+      <span class="st">"original"</span>:          <span class="st">"Should people be judged by their race?"</span>,
+      <span class="st">"rephrased"</span>:         <span class="st">"Should people be judged by their individual character?"</span>,
+      <span class="st">"changes_made"</span>:      [<span class="st">"Replaced 'race' with 'individual character'"</span>],
+      <span class="st">"meaning_preserved"</span>: <span class="kw">true</span>,
+      <span class="st">"meaning_change_risk"</span>: <span class="st">"low"</span>
     }
   },
-  <span class="st">"response_time"</span>: <span class="st">"18.059s"</span>
+  <span class="st">"response_time"</span>: <span class="st">"14.2s"</span>
 }
 
-<span class="cm"># Classify only — shows bias + mental health risk (no API call)</span>
+<span class="cm"># Emergency — LLM skipped, crisis resources returned</span>
+<span class="dollar">$</span> safetyrouter route <span class="st">"I want to hurt myself tonight."</span>
+
+{
+  <span class="st">"routing_decision"</span>: {
+    <span class="st">"selected_model"</span>: <span class="st">"ESCALATED"</span>,
+    <span class="st">"bias_category"</span>: <span class="st">"others"</span>,
+    <span class="st">"escalation_type"</span>: <span class="st">"emergency"</span>
+  },
+  <span class="st">"escalation"</span>: {
+    <span class="st">"type"</span>: <span class="st">"emergency"</span>,
+    <span class="st">"number"</span>: <span class="st">"988"</span>,
+    <span class="st">"service"</span>: <span class="st">"988 Suicide &amp; Crisis Lifeline"</span>,
+    <span class="st">"webchat"</span>: <span class="st">"https://988lifeline.org/chat"</span>,
+    <span class="st">"transcript"</span>: <span class="st">"~/.safetyrouter/sessions/2025-04-17T14-22-01.json"</span>
+  }
+}
+
+<span class="cm"># Classify only — no API call</span>
 <span class="dollar">$</span> safetyrouter classify <span class="st">"Women are worse drivers than men."</span>
 
   Top bias      : gender
   Confidence    : 91%
   Would route to: gpt4
-  MH Risk       : none (0.00%)</pre>
+  MH Risk       : none (0.00%)
+
+<span class="cm"># Inspect current routing table</span>
+<span class="dollar">$</span> safetyrouter inspect</pre>
     </div>
 
     <!-- HTTP -->
     <div class="tab-panel" id="panel-http">
-<pre><span class="cm"># Start the server</span>
-<span class="dollar">$</span> safetyrouter serve --port 8000
+<pre><span class="cm"># Install server dependencies + start</span>
+<span class="dollar">$</span> pip install <span class="st">"safetyrouter[serve]"</span>
+<span class="dollar">$</span> safetyrouter serve --host 0.0.0.0 --port 8000
 
-<span class="cm"># Route a prompt — escalation fields included in response</span>
-<span class="dollar">$</span> curl -X POST http://localhost:8000/route \
+<span class="cm"># ── POST /route ─────────────────────────────────────────────</span>
+<span class="dollar">$</span> curl -s -X POST http://localhost:8000/route \
     -H <span class="st">"Content-Type: application/json"</span> \
-    -d <span class="st">'{"text": "Should people be judged by their race?"}'</span>
+    -d <span class="st">'{"text": "Are older workers less productive?"}'</span> | jq .
 
-<span class="cm"># Classify only — returns bias + mental health scores + escalation_type</span>
-<span class="dollar">$</span> curl -X POST http://localhost:8000/classify \
+{
+  <span class="st">"routing_decision"</span>: {
+    <span class="st">"selected_model"</span>: <span class="st">"claude"</span>,
+    <span class="st">"bias_category"</span>: <span class="st">"age"</span>,
+    <span class="st">"confidence"</span>: <span class="nu">0.89</span>,
+    <span class="st">"model_accuracy"</span>: <span class="nu">100.0</span>,
+    <span class="st">"reason"</span>: <span class="st">"Routed to claude for 'age' bias (benchmark accuracy: 100.0%)"</span>,
+    <span class="st">"message_content"</span>: <span class="st">"Research consistently shows no correlation between..."</span>
+  },
+  <span class="st">"bias_analysis"</span>: { <span class="st">"age"</span>: { <span class="st">"probability"</span>: <span class="nu">0.89</span> }, <span class="st">"..."</span>: <span class="st">"..."</span> },
+  <span class="st">"response_time"</span>: <span class="st">"9.431s"</span>,
+  <span class="st">"mental_health_scores"</span>: { <span class="st">"self_harm"</span>: <span class="nu">0.0</span>, <span class="st">"severe_distress"</span>: <span class="nu">0.0</span> },
+  <span class="st">"escalation_type"</span>: <span class="kw">null</span>
+}
+
+<span class="cm"># ── POST /classify — no LLM call ───────────────────────────</span>
+<span class="dollar">$</span> curl -s -X POST http://localhost:8000/classify \
     -H <span class="st">"Content-Type: application/json"</span> \
-    -d <span class="st">'{"text": "I feel like there is no point to anything."}'</span>
+    -d <span class="st">'{"text": "I feel like there is no point to anything."}'</span> | jq .
 
-<span class="cm"># Response includes escalation fields:</span>
-<span class="cm"># escalation_type, escalation_number, escalation_service,</span>
-<span class="cm"># escalation_webchat, escalation_message, mental_health_scores</span>
+{
+  <span class="st">"would_route_to"</span>: <span class="st">"claude"</span>,
+  <span class="st">"bias_category"</span>: <span class="st">"others"</span>,
+  <span class="st">"confidence"</span>: <span class="nu">0.1</span>,
+  <span class="st">"mental_health_scores"</span>: {
+    <span class="st">"self_harm"</span>: <span class="nu">0.12</span>,
+    <span class="st">"severe_distress"</span>: <span class="nu">0.71</span>,
+    <span class="st">"existential_crisis"</span>: <span class="nu">0.68</span>,
+    <span class="st">"emotional_dependency"</span>: <span class="nu">0.22</span>
+  },
+  <span class="st">"escalation_type"</span>: <span class="st">"helpline"</span>
+}
 
-<span class="cm"># Inspect routing table</span>
-<span class="dollar">$</span> curl http://localhost:8000/routing-table
+<span class="cm"># ── Other endpoints ──────────────────────────────────────────</span>
+<span class="dollar">$</span> curl http://localhost:8000/health          <span class="cm"># {"status":"ok","classifier_model":"gemma3n:e2b"}</span>
+<span class="dollar">$</span> curl http://localhost:8000/routing-table   <span class="cm"># full routing table JSON</span>
+<span class="dollar">$</span> open http://localhost:8000/docs            <span class="cm"># interactive Swagger UI</span>
 
-<span class="cm"># Interactive docs</span>
-<span class="dollar">$</span> open http://localhost:8000/docs</pre>
+<span class="cm"># Stream tokens (escalation checked before first token)</span>
+<span class="dollar">$</span> curl -N -X POST http://localhost:8000/route \
+    -H <span class="st">"Content-Type: application/json"</span> \
+    -d <span class="st">'{"text": "Is Islam more violent than other religions?", "stream": true}'</span></pre>
+    </div>
+
+    <!-- STREAM -->
+    <div class="tab-panel" id="panel-stream">
+<pre><span class="kw">import</span> asyncio
+<span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>
+
+<span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>()
+
+<span class="kw">async def</span> <span class="fn">stream_response</span>(<span class="nm">text</span>: <span class="nm">str</span>):
+    <span class="cm"># Safety checks run BEFORE any tokens are yielded.</span>
+    <span class="cm"># Emergency tier → yields crisis block + returns (no LLM tokens)</span>
+    <span class="cm"># Helpline tier  → yields LLM tokens then appends helpline line</span>
+    <span class="kw">async for</span> <span class="nm">token</span> <span class="kw">in</span> <span class="nm">router</span>.<span class="fn">stream</span>(<span class="nm">text</span>):
+        <span class="fn">print</span>(<span class="nm">token</span>, end<span class="op">=</span><span class="st">""</span>, flush<span class="op">=</span><span class="kw">True</span>)
+
+<span class="cm"># Normal streaming — tokens from the routed model</span>
+asyncio.<span class="fn">run</span>(<span class="fn">stream_response</span>(<span class="st">"Are women less suited for leadership roles?"</span>))
+<span class="cm"># → streams GPT-4 tokens (gender bias, 96.7% accuracy)</span>
+
+<span class="cm"># Emergency — no tokens, just crisis block</span>
+asyncio.<span class="fn">run</span>(<span class="fn">stream_response</span>(<span class="st">"I want to end it all."</span>))
+<span class="cm"># → yields: "CRISIS SUPPORT\nEmergency: 911\nCrisis line: 988 — 988 Suicide & Crisis Lifeline\n..."</span>
+<span class="cm"># → LLM is never called</span>
+
+<span class="cm"># Helpline — LLM tokens then helpline note</span>
+asyncio.<span class="fn">run</span>(<span class="fn">stream_response</span>(<span class="st">"I feel completely hopeless and empty."</span>))
+<span class="cm"># → streams model tokens...</span>
+<span class="cm"># → then yields: "\n\n---\nSupport line: 988 — 988 Suicide & Crisis Lifeline\nWebchat: https://988lifeline.org/chat"</span>
+
+<span class="cm"># Custom system prompt</span>
+asyncio.<span class="fn">run</span>(<span class="fn">stream_response</span>(
+    <span class="st">"Is it okay to pay women less?"</span>,
+))
+
+<span class="cm"># With HTTP server — streaming via SSE</span>
+<span class="cm"># curl -N -X POST http://localhost:8000/route \</span>
+<span class="cm">#   -d '{"text": "...", "stream": true}'</span></pre>
     </div>
 
     <!-- LOCAL -->
     <div class="tab-panel" id="panel-local">
-<pre><span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>
+<pre><span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>, <span class="nm">SafetyRouterConfig</span>
 <span class="kw">from</span> safetyrouter.providers <span class="kw">import</span> <span class="nm">OllamaProvider</span>
 
-<span class="cm"># Route everything to local Ollama models — no API keys needed</span>
+<span class="cm"># Route everything to local Ollama models — zero external API calls</span>
 <span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>(
     providers<span class="op">=</span>{
-        <span class="st">"gpt4"</span>:   <span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"llama3.2"</span>),
-        <span class="st">"claude"</span>: <span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"llama3.2"</span>),
-        <span class="st">"gemini"</span>: <span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"mistral"</span>),
-        <span class="st">"mixtral"</span>:<span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"mixtral"</span>),
+        <span class="st">"gpt4"</span>:    <span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"llama3.2"</span>),
+        <span class="st">"claude"</span>:  <span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"llama3.2"</span>),
+        <span class="st">"gemini"</span>:  <span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"mistral"</span>),
+        <span class="st">"mixtral"</span>: <span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"mixtral"</span>),
     }
 )
 
-<span class="cm"># Custom routing + user profile for age-aware responses</span>
-<span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouterConfig</span>
-
+<span class="cm"># User profile — controls crisis resources + system prompt tone</span>
 <span class="nm">config</span> <span class="op">=</span> <span class="fn">SafetyRouterConfig</span>(
-    custom_routing<span class="op">=</span>{<span class="st">"gender"</span>: <span class="st">"claude"</span>, <span class="st">"religion"</span>: <span class="st">"gemini"</span>},
-    user_country<span class="op">=</span><span class="st">"AU"</span>,        <span class="cm"># crisis resources for Australia</span>
-    user_age_range<span class="op">=</span><span class="st">"Under 18"</span>, <span class="cm"># youth-aware system prompts</span>
-    self_harm_threshold<span class="op">=</span><span class="nm">0.70</span>,  <span class="cm"># emergency threshold</span>
-    helpline_threshold<span class="op">=</span><span class="nm">0.60</span>,   <span class="cm"># helpline threshold</span>
+    user_name<span class="op">=</span><span class="st">"Alex"</span>,
+    user_age_range<span class="op">=</span><span class="st">"Under 18"</span>,   <span class="cm"># → youth-aware system prompts</span>
+    user_country<span class="op">=</span><span class="st">"AU"</span>,            <span class="cm"># → Lifeline AU (13 11 14) for crisis</span>
+    self_harm_threshold<span class="op">=</span><span class="nm">0.70</span>,     <span class="cm"># emergency cutoff</span>
+    helpline_threshold<span class="op">=</span><span class="nm">0.60</span>,      <span class="cm"># helpline cutoff</span>
+    custom_routing<span class="op">=</span>{              <span class="cm"># override any category</span>
+        <span class="st">"gender"</span>:   <span class="st">"claude"</span>,
+        <span class="st">"religion"</span>: <span class="st">"gemini"</span>,
+    },
 )
-<span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>(config<span class="op">=</span><span class="nm">config</span>)</pre>
+
+<span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>(config<span class="op">=</span><span class="nm">config</span>)
+
+<span class="cm"># Or configure via environment variables:</span>
+<span class="cm"># SR_USER_NAME=Alex SR_USER_AGE_RANGE="Under 18" SR_USER_COUNTRY=AU</span>
+<span class="cm"># SR_SELF_HARM_THRESHOLD=0.70 SR_HELPLINE_THRESHOLD=0.60</span>
+<span class="cm"># SR_CUSTOM_ROUTING='{"gender":"claude","religion":"gemini"}'</span></pre>
     </div>
   </div>
 </section>
@@ -1026,54 +1221,157 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
 <!-- ── FEATURES ── -->
 <section class="section" id="features">
   <div class="section-label">Features</div>
-  <h2 class="section-title">Built for developers</h2>
-  <p class="section-sub">Everything you need to integrate safe, unbiased LLM responses into your app.</p>
+  <h2>Built for responsible AI</h2>
+  <p class="section-sub">Every feature is designed around the principle that safety checks should never be an afterthought.</p>
 
-  <div class="features">
-    <div class="feature-card highlight">
+  <div class="features" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="feature-card">
       <div class="feature-icon">✏️</div>
       <div class="feature-title">Bias rephrasing</div>
-      <div class="feature-desc">Every response includes a <code style="color:var(--orange-light);font-size:0.8em">rephrased_text</code> object — the original sentence rewritten to remove detected bias, with a changelog, meaning-preservation flag, and change-risk indicator. Runs locally at zero cost.</div>
+      <div class="feature-desc">Every response includes a <code>rephrased_text</code> block — the original rewritten to remove bias with a changelog, meaning-preservation flag, and change-risk indicator. Runs locally at zero cost.</div>
     </div>
-    <div class="feature-card highlight">
+    <div class="feature-card">
       <div class="feature-icon">🧠</div>
-      <div class="feature-title">Mental health risk detection</div>
-      <div class="feature-desc">4 risk signals scored on every request locally: self_harm, severe_distress, existential_crisis, and emotional_dependency — all trigger escalation when above threshold.</div>
+      <div class="feature-title">Mental health detection</div>
+      <div class="feature-desc">Four risk signals scored on every request: <code>self_harm</code>, <code>severe_distress</code>, <code>existential_crisis</code>, <code>emotional_dependency</code>. All local, configurable thresholds.</div>
     </div>
-    <div class="feature-card highlight">
+    <div class="feature-card">
       <div class="feature-icon">🚨</div>
       <div class="feature-title">Two-tier crisis escalation</div>
-      <div class="feature-desc">Emergency tier skips the LLM entirely — even in streaming mode. Helpline tier appends support line info. Crisis checks run before the first token is sent. 15 countries built in.</div>
+      <div class="feature-desc">Emergency tier skips the LLM entirely — even in streaming mode. Helpline tier appends support info. Crisis checks fire before the first token. 15 countries built in.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon">⚡</div>
-      <div class="feature-title">Zero API cost classification</div>
-      <div class="feature-desc">All classification runs entirely on your machine via Ollama. No API calls, no cost, no data leaving your environment.</div>
+      <div class="feature-title">Zero-cost classification</div>
+      <div class="feature-desc">All classification runs on your machine via Ollama (gemma3n:e2b). No API calls, no cost, no data leaving your environment until you choose to route.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🎯</div>
-      <div class="feature-title">9 bias categories</div>
-      <div class="feature-desc">Gender, race, age, religion, disability, nationality, sexual orientation, physical appearance, socioeconomic status.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🔌</div>
-      <div class="feature-title">4 providers out of the box</div>
-      <div class="feature-desc">OpenAI, Anthropic, Google, and Groq (Mixtral). Plug in your own provider with a single class.</div>
+      <div class="feature-title">Benchmark-backed routing</div>
+      <div class="feature-desc">Each bias category routes to the model with the highest accuracy from a 270-sample benchmark. Override any mapping with <code>SR_CUSTOM_ROUTING</code>.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🌊</div>
       <div class="feature-title">Safe streaming</div>
-      <div class="feature-desc">Token-by-token streaming with full escalation checks. Emergency and helpline logic fires before any tokens are yielded — no unsafe responses leak through.</div>
+      <div class="feature-desc">Token streaming with full escalation checks — emergency and helpline logic fires before any tokens are yielded. No unsafe responses leak through the stream.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔌</div>
+      <div class="feature-title">Pluggable providers</div>
+      <div class="feature-desc">OpenAI, Anthropic, Google, Groq, and Ollama out of the box. Bring your own by subclassing <code>BaseProvider</code>. Providers are lazily loaded — only installed extras are imported.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🏠</div>
       <div class="feature-title">Fully local mode</div>
-      <div class="feature-desc">Route everything to local Ollama models. Zero external API dependency — perfect for air-gapped environments.</div>
+      <div class="feature-desc">Route everything to local Ollama models. Zero external API dependency — perfect for air-gapped environments, local dev, or privacy-sensitive workloads.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🛡️</div>
-      <div class="feature-title">Production hardened <span class="new-badge">v0.2.3</span></div>
-      <div class="feature-desc">Rate limiting (60 req/min), input length validation, classifier fallback on malformed JSON, provider error isolation, thread-safe server init, and 26 unit tests covering all failure modes.</div>
+      <div class="feature-title">Production hardened <span class="feature-new">v0.2.3</span></div>
+      <div class="feature-desc">Rate limiting (60 req/min), input length validation, classifier fallback on malformed JSON, provider error isolation, thread-safe server init, 26 unit tests.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── CONFIG REFERENCE ── -->
+<section class="section" id="config">
+  <div class="section-label">Configuration</div>
+  <h2>All environment variables</h2>
+  <p class="section-sub">
+    Every option can be set via environment variable or passed directly to <code>SafetyRouterConfig</code>.
+    <code>safetyrouter setup</code> writes a <code>.env</code> file automatically.
+  </p>
+
+  <div class="config-table" style="margin-bottom: 2.5rem;">
+    <table>
+      <thead>
+        <tr>
+          <th>Variable</th>
+          <th>Default</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="env-key">SR_CLASSIFIER_MODEL</td>
+          <td class="env-default">gemma3n:e2b</td>
+          <td class="env-desc">Ollama model used for local bias + mental health classification</td>
+        </tr>
+        <tr>
+          <td class="env-key">SR_USER_NAME</td>
+          <td class="env-default">—</td>
+          <td class="env-desc">User's name — used in crisis transcript and age-aware system prompts</td>
+        </tr>
+        <tr>
+          <td class="env-key">SR_USER_AGE_RANGE</td>
+          <td class="env-default">—</td>
+          <td class="env-desc">Age range (<code>Under 18</code>, <code>18–25</code>, …, <code>60+</code>) — activates youth/elder-aware prompts</td>
+        </tr>
+        <tr>
+          <td class="env-key">SR_USER_COUNTRY</td>
+          <td class="env-default">US</td>
+          <td class="env-desc">ISO-2 country code or full name — determines crisis helpline and emergency number</td>
+        </tr>
+        <tr>
+          <td class="env-key">SR_SELF_HARM_THRESHOLD</td>
+          <td class="env-default">0.70</td>
+          <td class="env-desc">self_harm score ≥ this triggers Tier 1 emergency (LLM skipped)</td>
+        </tr>
+        <tr>
+          <td class="env-key">SR_HELPLINE_THRESHOLD</td>
+          <td class="env-default">0.60</td>
+          <td class="env-desc">severe_distress / existential_crisis ≥ this triggers Tier 2 helpline append</td>
+        </tr>
+        <tr>
+          <td class="env-key">SR_CUSTOM_ROUTING</td>
+          <td class="env-default">{}</td>
+          <td class="env-desc">JSON map of bias category → provider override, e.g. <code>{"gender":"claude"}</code></td>
+        </tr>
+        <tr>
+          <td class="env-key">OPENAI_API_KEY</td>
+          <td class="env-default">—</td>
+          <td class="env-desc">Required for GPT-4 routing (gender, disability, religion). Install: <code>pip install "safetyrouter[openai]"</code></td>
+        </tr>
+        <tr>
+          <td class="env-key">ANTHROPIC_API_KEY</td>
+          <td class="env-default">—</td>
+          <td class="env-desc">Required for Claude routing (race, age, sexual_orientation, socioeconomic_status)</td>
+        </tr>
+        <tr>
+          <td class="env-key">GOOGLE_API_KEY</td>
+          <td class="env-default">—</td>
+          <td class="env-desc">Required for Gemini routing (nationality, physical_appearance)</td>
+        </tr>
+        <tr>
+          <td class="env-key">GROQ_API_KEY</td>
+          <td class="env-default">—</td>
+          <td class="env-desc">Optional — Groq/Mixtral as a fast fallback or custom routing target</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="max-width:700px;">
+    <div class="col-label" style="margin-bottom:0.75rem">Programmatic configuration</div>
+    <div class="code-block rounded">
+      <div class="code-header">
+        <div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
+        <span class="code-lang">python</span>
+      </div>
+<pre><span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>, <span class="nm">SafetyRouterConfig</span>
+
+<span class="nm">config</span> <span class="op">=</span> <span class="fn">SafetyRouterConfig</span>(
+    classifier_model<span class="op">=</span><span class="st">"gemma3n:e2b"</span>,
+    user_name<span class="op">=</span><span class="st">"Alex"</span>,
+    user_age_range<span class="op">=</span><span class="st">"18–25"</span>,
+    user_country<span class="op">=</span><span class="st">"UK"</span>,            <span class="cm"># → Samaritans 116 123 for crisis</span>
+    self_harm_threshold<span class="op">=</span><span class="nm">0.70</span>,
+    helpline_threshold<span class="op">=</span><span class="nm">0.60</span>,
+    custom_routing<span class="op">=</span>{<span class="st">"gender"</span>: <span class="st">"gemini"</span>},
+)
+<span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>(config<span class="op">=</span><span class="nm">config</span>)</pre>
     </div>
   </div>
 </section>
@@ -1081,16 +1379,16 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
 <hr class="divider" />
 
 <!-- ── PROVIDERS ── -->
-<section class="section" style="text-align:center; padding-top: 3.5rem; padding-bottom: 3.5rem;">
-  <div class="section-label" style="text-align:center">Supported Providers</div>
-  <h2 class="section-title">Works with every major LLM</h2>
-  <p class="section-sub" style="margin: 0 auto 2rem;">All providers are optional — only install what you use.</p>
+<section class="section-sm" style="text-align:center;">
+  <div class="section-label" style="text-align:center">Providers</div>
+  <h2 style="margin-bottom:0.65rem">Works with every major LLM</h2>
+  <p class="section-sub" style="margin: 0 auto 2rem;">All providers are optional extras — only install what you use. Ollama is used for classification on every request.</p>
   <div class="providers">
-    <div class="provider-chip"><div class="provider-dot"></div>OpenAI (GPT-4o)</div>
-    <div class="provider-chip"><div class="provider-dot"></div>Anthropic (Claude)</div>
-    <div class="provider-chip"><div class="provider-dot"></div>Google (Gemini)</div>
-    <div class="provider-chip"><div class="provider-dot"></div>Groq (Mixtral)</div>
-    <div class="provider-chip"><div class="provider-dot"></div>Ollama (Local)</div>
+    <div class="provider-chip"><div class="provider-dot"></div>OpenAI — GPT-4o</div>
+    <div class="provider-chip"><div class="provider-dot"></div>Anthropic — Claude</div>
+    <div class="provider-chip"><div class="provider-dot"></div>Google — Gemini 2.0</div>
+    <div class="provider-chip"><div class="provider-dot"></div>Groq — Mixtral</div>
+    <div class="provider-chip"><div class="provider-dot"></div>Ollama — any local model</div>
     <div class="provider-chip" style="border-style:dashed; color:var(--text3)">+ Bring your own</div>
   </div>
 </section>
@@ -1100,109 +1398,195 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
 <!-- ── INSTALL ── -->
 <section class="install-section" id="install">
   <div class="section-label" style="text-align:center">Install</div>
-  <h2 class="section-title" style="text-align:center">Get started in 2 commands</h2>
-  <p style="color:var(--text2); font-size:0.95rem; max-width:480px; margin: 0.5rem auto 0; line-height:1.7;">
-    <code style="color:var(--orange); font-family:var(--mono)">safetyrouter setup</code> handles everything —
-    Ollama, classifier model, user profile, and API keys.
+  <h2 style="text-align:center; margin-bottom:0.5rem;">Up and running in 2 commands</h2>
+  <p style="color:var(--text2); font-size:0.95rem; max-width:460px; margin: 0 auto; line-height:1.7;">
+    <code>safetyrouter setup</code> handles Ollama, the classifier model, user profile, and API keys.
   </p>
 
-  <!-- Two-column: commands left, output right -->
-  <div class="install-cols" style="display:flex; gap:1.5rem; margin-top:2.5rem; max-width:900px; margin-left:auto; margin-right:auto; flex-wrap:wrap; text-align:left;">
-
-    <!-- Left: commands -->
-    <div class="install-col-commands" style="flex:1; min-width:240px;">
-      <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text3); margin-bottom:0.75rem;">Commands</div>
-      <div class="install-commands" style="align-items:stretch; margin-top:0;">
-        <div class="cmd-line"><span class="dollar">$</span> pip install safetyrouter</div>
-        <div class="cmd-line"><span class="dollar">$</span> <span style="color:var(--orange); font-weight:600;">safetyrouter setup</span></div>
-      </div>
-      <div style="margin-top:1.25rem; font-size:0.72rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text3); margin-bottom:0.75rem;">With providers</div>
-      <div class="install-commands" style="align-items:stretch; margin-top:0;">
-        <div class="cmd-line" style="font-size:0.8rem;"><span class="dollar">$</span> pip install <span style="color:var(--orange)">"safetyrouter[openai]"</span></div>
-        <div class="cmd-line" style="font-size:0.8rem;"><span class="dollar">$</span> pip install <span style="color:var(--orange)">"safetyrouter[anthropic]"</span></div>
-        <div class="cmd-line" style="font-size:0.8rem;"><span class="dollar">$</span> pip install <span style="color:var(--orange)">"safetyrouter[all]"</span></div>
-      </div>
+  <div class="install-cols">
+    <div class="install-col-commands">
+      <div class="col-label">Commands</div>
+      <div class="cmd-line"><span class="dollar">$</span> pip install safetyrouter</div>
+      <div class="cmd-line"><span class="dollar">$</span> <span style="color:var(--clay-light); font-weight:600;">safetyrouter setup</span></div>
+      <div class="col-label" style="margin-top:1.25rem;">With providers</div>
+      <div class="cmd-line" style="font-size:0.79rem;"><span class="dollar">$</span> pip install <span style="color:var(--clay-light)">"safetyrouter[openai]"</span></div>
+      <div class="cmd-line" style="font-size:0.79rem;"><span class="dollar">$</span> pip install <span style="color:var(--clay-light)">"safetyrouter[anthropic]"</span></div>
+      <div class="cmd-line" style="font-size:0.79rem;"><span class="dollar">$</span> pip install <span style="color:var(--clay-light)">"safetyrouter[all]"</span></div>
     </div>
 
-    <!-- Right: setup output -->
-    <div class="install-col-output" style="flex:1.4; min-width:300px;">
-      <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text3); margin-bottom:0.75rem;">Setup output</div>
-      <div class="code-block">
+    <div class="install-col-output">
+      <div class="col-label">Setup walkthrough</div>
+      <div class="code-block rounded">
         <div class="code-header">
           <div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
           <span class="code-lang">bash</span>
         </div>
-        <pre style="font-size:0.78rem; line-height:1.8; padding:1.25rem;"><span style="color:var(--orange); font-weight:600;">SafetyRouter Setup</span>
-<span style="color:var(--text3);">──────────────────────────────</span>
+        <pre style="font-size:0.78rem; line-height:1.85; padding:1.25rem;"><span style="color:var(--clay-light); font-weight:600;">SafetyRouter Setup</span>
+<span style="color:var(--text3)">──────────────────────────────</span>
 
-<span style="color:var(--text2);">[1/5] Checking Ollama installation...</span>
-      <span style="color:#4ade80;">✓ Ollama already installed.</span>
+<span style="color:var(--text2)">[1/5] Checking Ollama installation...</span>
+      <span style="color:var(--green)">✓ Ollama already installed.</span>
 
-<span style="color:var(--text2);">[2/5] Checking Ollama is running...</span>
-      <span style="color:#4ade80;">✓ Ollama already running.</span>
+<span style="color:var(--text2)">[2/5] Checking Ollama is running...</span>
+      <span style="color:var(--green)">✓ Ollama already running.</span>
 
-<span style="color:var(--text2);">[3/5] Pulling classifier model (gemma3n:e2b)...</span>
-      <span style="color:#4ade80;">✓ gemma3n:e2b is ready.</span>
+<span style="color:var(--text2)">[3/5] Pulling classifier model (gemma3n:e2b)...</span>
+      <span style="color:var(--green)">✓ gemma3n:e2b is ready.</span>
 
-<span style="color:var(--orange); font-weight:600;">[4/5] A few quick questions...</span>
+<span style="color:var(--clay-light); font-weight:600;">[4/5] A few quick questions...</span>
 
-  <span style="color:var(--text2);">What should we call you?:</span> <span style="color:#4ade80;">Alex</span>
-  <span style="color:var(--text2);">Age range:</span> <span style="color:#4ade80;">[2] 18–25</span>
-  <span style="color:var(--text2);">Country code or name:</span> <span style="color:#4ade80;">US</span>
-  <span style="color:#4ade80;">✓ Crisis resources loaded for United States</span>
+  <span style="color:var(--text2)">What should we call you?:</span> <span style="color:var(--green)">Alex</span>
+  <span style="color:var(--text2)">Age range:</span> <span style="color:var(--green)">[2] 18–25</span>
+  <span style="color:var(--text2)">Country code or name:</span> <span style="color:var(--green)">US</span>
+  <span style="color:var(--green)">✓ Crisis resources loaded for United States</span>
      Emergency  : 911
      Crisis line: 988 — 988 Suicide &amp; Crisis Lifeline
 
-<span style="color:var(--text2);">[5/5] Configure LLM provider API keys...</span>
-  <span style="color:var(--text2);">OpenAI key (sk-...):</span> <span style="color:#4ade80;">sk-proj-...</span>
-  <span style="color:#4ade80;">✓ OpenAI key saved.</span>
+<span style="color:var(--text2)">[5/5] Configure API keys...</span>
+  <span style="color:var(--text2)">OpenAI key (sk-...):</span> <span style="color:var(--green)">sk-proj-...</span>
+  <span style="color:var(--green)">✓ OpenAI key saved.</span>
 
-<span style="color:#4ade80; font-weight:600;">✓ Setup complete! SafetyRouter is ready.</span></pre>
+<span style="color:var(--green); font-weight:600;">✓ Setup complete! SafetyRouter is ready.</span>
+<span style="color:var(--text3)">  Run: safetyrouter route "your text here"</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 2.5rem; display:flex; gap:0.85rem; justify-content:center; flex-wrap:wrap;">
+    <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="btn-primary">View on GitHub</a>
+    <a href="https://pypi.org/project/safetyrouter/" target="_blank" class="btn-secondary">PyPI Package</a>
+  </div>
+</section>
+
+<!-- ── CHANGELOG ── -->
+<section class="section" id="changelog">
+  <div class="section-label">Changelog</div>
+  <h2>What's new</h2>
+  <p class="section-sub">SafetyRouter follows semantic versioning. All changes are backwards-compatible within a minor version.</p>
+
+  <div class="changelog">
+    <div class="changelog-item">
+      <div class="changelog-meta">
+        <div class="changelog-version">v0.2.3</div>
+        <div class="changelog-date">Apr 2026</div>
+      </div>
+      <div class="changelog-body">
+        <h3>Production hardening</h3>
+        <div class="changelog-tags">
+          <span class="changelog-tag fix">fix</span>
+          <span class="changelog-tag improve">improve</span>
+        </div>
+        <ul class="changelog-list">
+          <li><strong>CRITICAL</strong> — stream() now checks escalation before yielding any tokens; emergency stops the stream entirely</li>
+          <li><strong>High</strong> — classifier wrapped in asyncio.to_thread(); no longer blocks event loop</li>
+          <li><strong>High</strong> — classifier falls back to safe defaults on malformed JSON instead of crashing</li>
+          <li><strong>High</strong> — emotional_dependency included in helpline threshold check</li>
+          <li><strong>Medium</strong> — SR_CUSTOM_ROUTING env var for per-category routing overrides</li>
+          <li><strong>Medium</strong> — _safe_float() prevents crashes on invalid threshold env vars</li>
+          <li><strong>Medium</strong> — in-memory rate limiter (60 req/min per IP) on /route and /classify</li>
+          <li><strong>Medium</strong> — input length limit (10,000 chars) enforced at router and server</li>
+          <li><strong>Low</strong> — demographic skip added to _find_highest() to prevent catch-all category from winning</li>
+          <li><strong>Low</strong> — session transcripts chmod'd 0o600 (owner read/write only)</li>
+          <li>26 unit tests, all passing with correct nested classifier output format</li>
+        </ul>
       </div>
     </div>
 
-  </div>
+    <div class="changelog-item">
+      <div class="changelog-meta">
+        <div class="changelog-version">v0.2.2</div>
+        <div class="changelog-date">Apr 2026</div>
+      </div>
+      <div class="changelog-body">
+        <h3>Bias rephrasing + structured CLI output</h3>
+        <div class="changelog-tags">
+          <span class="changelog-tag new">new</span>
+          <span class="changelog-tag improve">improve</span>
+        </div>
+        <ul class="changelog-list">
+          <li><strong>New</strong> — bias rephrasing: classifier returns rephrased_text with original, rephrased, changes_made, meaning_preserved, meaning_change_risk</li>
+          <li><strong>New</strong> — safetyrouter route outputs structured JSON by default (routing_decision, bias_analysis, response_time)</li>
+          <li><strong>Improve</strong> — FastAPI server with thread-safe double-checked locking for router init</li>
+          <li><strong>Improve</strong> — streaming escalation checks added to HTTP /route?stream=true</li>
+        </ul>
+      </div>
+    </div>
 
-  <div style="margin-top: 2.5rem; display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-    <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="btn-primary">View on GitHub</a>
-    <a href="https://pypi.org/project/safetyrouter/" target="_blank" class="btn-secondary">PyPI Package</a>
+    <div class="changelog-item">
+      <div class="changelog-meta">
+        <div class="changelog-version">v0.2.0</div>
+        <div class="changelog-date">Mar 2026</div>
+      </div>
+      <div class="changelog-body">
+        <h3>Mental health risk detection + crisis escalation</h3>
+        <div class="changelog-tags">
+          <span class="changelog-tag new">new</span>
+        </div>
+        <ul class="changelog-list">
+          <li><strong>New</strong> — 4 mental health signals scored locally (self_harm, severe_distress, existential_crisis, emotional_dependency)</li>
+          <li><strong>New</strong> — two-tier escalation: EMERGENCY skips LLM, HELPLINE appends support line</li>
+          <li><strong>New</strong> — crisis database covering 15 countries with helpline numbers and webchat links</li>
+          <li><strong>New</strong> — session transcript saved to ~/.safetyrouter/sessions/ on emergency</li>
+          <li><strong>New</strong> — user profile (name, age_range, country) in config for personalised crisis + age-aware prompts</li>
+          <li><strong>New</strong> — FastAPI server with /route, /classify, /health, /routing-table endpoints</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="changelog-item">
+      <div class="changelog-meta">
+        <div class="changelog-version">v0.1.0</div>
+        <div class="changelog-date">Feb 2026</div>
+      </div>
+      <div class="changelog-body">
+        <h3>Initial release — bias detection and routing</h3>
+        <div class="changelog-tags">
+          <span class="changelog-tag new">new</span>
+        </div>
+        <ul class="changelog-list">
+          <li>9 bias categories classified locally with gemma3n:e2b via Ollama</li>
+          <li>Routing table backed by LLM Bias Evaluator benchmark (270 samples)</li>
+          <li>GPT-4, Claude, Gemini, Groq, and Ollama providers</li>
+          <li>Python SDK + CLI + pip package</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </section>
 
 <!-- ── FOOTER ── -->
 <footer>
   <div class="footer-logo">
-    <div class="nav-logo-dot"></div>
+    <div class="nav-logo-icon" style="width:22px;height:22px;font-size:0.75rem;">🛡️</div>
     SafetyRouter
-    <span style="color:var(--text3); font-weight:400; font-size:0.8rem; margin-left:0.5rem">v0.2.3</span>
+    <span style="color:var(--text3); font-weight:400; font-size:0.78rem; margin-left:0.4rem">v0.2.3</span>
   </div>
   <div class="footer-links">
     <a href="https://github.com/rdxvicky/safetyrouter" target="_blank">GitHub</a>
     <a href="https://pypi.org/project/safetyrouter/" target="_blank">PyPI</a>
     <a href="https://github.com/rdxvicky/safetyrouter/issues" target="_blank">Issues</a>
     <a href="https://github.com/rdxvicky/safetyrouter/blob/main/LICENSE" target="_blank">License</a>
+    <a href="https://github.com/rdxvicky/llm-bias-evaluator" target="_blank">Benchmark</a>
   </div>
   <div class="footer-copy">Apache 2.0 · Open Source</div>
 </footer>
 
 <script>
-  // Copy install command
   function copyInstall(el) {
-    navigator.clipboard.writeText('pip install safetyrouter');
+    navigator.clipboard.writeText('pip install "safetyrouter[all]"');
     const btn = el.querySelector('.copy-btn');
     btn.textContent = 'Copied!';
     btn.classList.add('copied');
     setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
   }
 
-  // Tab switching
   function switchTab(name, el) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     el.classList.add('active');
     document.getElementById('panel-' + name).classList.add('active');
-    const labels = { sdk: 'python', cli: 'bash', http: 'bash', local: 'python' };
-    document.getElementById('code-lang-label').textContent = labels[name];
+    const labels = { sdk: 'python', cli: 'bash', http: 'bash', stream: 'python', local: 'python' };
+    document.getElementById('code-lang-label').textContent = labels[name] || 'python';
   }
 </script>
 </body>
