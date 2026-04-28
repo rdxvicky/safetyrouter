@@ -6,62 +6,54 @@
   <title>SafetyRouter — Safety-Aware LLM Routing</title>
   <meta name="description" content="Safety-Aware LLM Routing Framework. Bias Detection + Bias Rephrasing + Mental Health Risk Detection + Human Escalation. Classifies locally at zero API cost." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* Claude-inspired warm palette */
-      --clay:          #cc785c;
-      --clay-light:    #e08a6a;
-      --clay-dim:      #b5603e;
-      --clay-glow:     rgba(204,120,92,0.12);
-      --clay-border:   rgba(204,120,92,0.28);
-      --clay-subtle:   rgba(204,120,92,0.06);
+      /* ── Editorial cream palette ── */
+      --cream:        #ede8da;
+      --cream-2:      #e3ddcb;
+      --cream-3:      #d8d1bd;
+      --paper:        #f4efe2;
+      --white:        #ffffff;
 
-      --red:           #e05252;
-      --red-light:     #f08080;
-      --red-glow:      rgba(224,82,82,0.10);
-      --red-border:    rgba(224,82,82,0.28);
+      --ink:          #0e0e0b;
+      --ink-2:        #2a2520;
+      --ink-3:        #6b6555;
+      --ink-4:        #9a9385;
 
-      --amber:         #d4a847;
-      --amber-glow:    rgba(212,168,71,0.10);
-      --amber-border:  rgba(212,168,71,0.28);
+      --green:        #3d8a52;
+      --green-2:      #2f6e40;
+      --green-soft:   #d8e4d6;
 
-      --green:         #5dac7e;
+      --coral:        #c85a3a;
+      --coral-soft:   #f0d4c8;
 
-      /* Warm dark surfaces */
-      --bg:            #141413;
-      --bg2:           #1a1917;
-      --bg3:           #201e1b;
-      --bg4:           #272420;
-      --bg5:           #2e2b26;
+      --amber:        #c89030;
+      --amber-soft:   #efe0c2;
 
-      --border:        #2e2b26;
-      --border2:       #3a3630;
+      --rose:         #c44550;
+      --rose-soft:    #efd0d3;
 
-      /* Warm text */
-      --text:          #f0ead8;
-      --text2:         #9e9484;
-      --text3:         #5a5248;
-      --text4:         #3d3830;
+      --line:         rgba(14,14,11,0.10);
+      --line-2:       rgba(14,14,11,0.18);
 
-      --mono: 'JetBrains Mono', monospace;
-      --sans: 'Inter', sans-serif;
-
-      --radius-sm: 6px;
-      --radius:    10px;
-      --radius-lg: 14px;
+      --display: 'Inter Tight', sans-serif;
+      --sans:    'Inter', sans-serif;
+      --mono:    'JetBrains Mono', monospace;
     }
 
     html { scroll-behavior: smooth; }
 
     body {
       font-family: var(--sans);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.55;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
     a { color: inherit; text-decoration: none; }
@@ -69,638 +61,861 @@
     /* ── NAV ── */
     nav {
       position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.25rem 2rem;
+      background: rgba(237,232,218,0.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav-inner {
+      width: 100%; max-width: 1200px;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 2rem;
-      height: 58px;
-      background: rgba(20,20,19,0.90);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
     }
 
     .nav-logo {
-      display: flex; align-items: center; gap: 0.55rem;
-      font-weight: 700; font-size: 1rem; letter-spacing: -0.02em;
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: var(--display);
+      font-weight: 800; font-size: 1.1rem;
+      letter-spacing: -0.03em;
     }
 
-    .nav-logo-icon {
-      width: 26px; height: 26px; border-radius: 7px;
-      background: var(--clay-glow);
-      border: 1px solid var(--clay-border);
+    .nav-logo-mark {
+      width: 24px; height: 24px;
+      border-radius: 6px;
+      background: var(--ink);
+      color: var(--cream);
       display: flex; align-items: center; justify-content: center;
-      font-size: 0.85rem;
+      font-size: 0.75rem; font-weight: 700;
     }
 
     .nav-links {
-      display: flex; align-items: center; gap: 0.25rem;
-      font-size: 0.865rem; color: var(--text2);
+      display: flex; align-items: center; gap: 2rem;
+      font-size: 0.9rem; color: var(--ink-2);
     }
 
     .nav-links a {
-      padding: 0.3rem 0.65rem;
-      border-radius: var(--radius-sm);
-      transition: color 0.15s, background 0.15s;
+      transition: color 0.15s;
+      position: relative;
     }
-    .nav-links a:hover { color: var(--text); background: var(--bg3); }
+    .nav-links a:hover { color: var(--coral); }
 
-    .nav-right {
-      display: flex; align-items: center; gap: 0.5rem;
-    }
-
-    .nav-badge {
-      padding: 0.2rem 0.6rem;
+    .nav-cta {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      background: var(--ink);
+      color: var(--cream);
       border-radius: 99px;
-      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.03em;
-      background: var(--clay-glow);
-      border: 1px solid var(--clay-border);
-      color: var(--clay-light);
+      font-size: 0.84rem; font-weight: 500;
+      transition: background 0.15s;
     }
-
-    .nav-github {
-      display: flex; align-items: center; gap: 0.4rem;
-      padding: 0.35rem 0.85rem;
-      border: 1px solid var(--border2);
-      border-radius: var(--radius-sm);
-      font-size: 0.8rem;
-      color: var(--text2);
-      transition: border-color 0.15s, color 0.15s;
-    }
-    .nav-github:hover { border-color: var(--clay-border); color: var(--text); }
+    .nav-cta:hover { background: var(--coral); color: var(--white); }
 
     /* ── HERO ── */
     .hero {
-      display: flex; flex-direction: column; align-items: center;
-      text-align: center;
-      padding: 7rem 1.5rem 5.5rem;
-      position: relative; overflow: hidden;
-    }
-
-    .hero::before {
-      content: '';
-      position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
-      width: 800px; height: 480px;
-      background: radial-gradient(ellipse at center top, rgba(204,120,92,0.10) 0%, transparent 65%);
-      pointer-events: none;
+      position: relative;
+      padding: 4rem 1.5rem 0;
+      max-width: 1280px;
+      margin: 0 auto;
     }
 
     .hero-eyebrow {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.3rem 0.9rem;
-      border: 1px solid var(--clay-border);
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.32rem 0.85rem;
+      border: 1px solid var(--line-2);
       border-radius: 99px;
       font-size: 0.78rem; font-weight: 500;
-      color: var(--clay-light);
-      background: var(--clay-glow);
-      margin-bottom: 2.25rem;
-      letter-spacing: 0.015em;
+      color: var(--ink-2);
+      background: rgba(255,255,255,0.5);
+      margin-bottom: 2rem;
     }
 
     .hero-eyebrow-dot {
-      width: 5px; height: 5px; border-radius: 50%;
-      background: var(--clay);
-      animation: pulse 2s ease-in-out infinite;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
+      animation: livepulse 2s ease-in-out infinite;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.35; }
+    @keyframes livepulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(61,138,82,0.4); }
+      50%      { box-shadow: 0 0 0 6px rgba(61,138,82,0); }
     }
 
-    h1 {
-      font-size: clamp(2.4rem, 6vw, 4.2rem);
+    .hero-headline {
+      font-family: var(--display);
       font-weight: 800;
-      line-height: 1.08;
-      letter-spacing: -0.04em;
-      max-width: 760px;
-      margin-bottom: 1.5rem;
-      color: var(--text);
+      font-size: clamp(2.6rem, 7vw, 5.5rem);
+      line-height: 0.95;
+      letter-spacing: -0.045em;
+      max-width: 1100px;
+      color: var(--ink);
+      margin-bottom: 2.5rem;
     }
 
-    h1 em { font-style: normal; color: var(--clay-light); }
-
-    .hero-sub {
-      font-size: clamp(1rem, 2vw, 1.1rem);
-      color: var(--text2);
-      max-width: 520px;
-      line-height: 1.75;
-      margin-bottom: 2.25rem;
+    .hero-headline em {
+      font-style: italic;
+      font-weight: 500;
+      color: var(--coral);
+      font-family: 'Instrument Serif', serif;
     }
 
-    .hero-pills {
-      display: flex; align-items: center; gap: 0.5rem;
-      flex-wrap: wrap; justify-content: center;
-      margin-bottom: 2.75rem;
+    .hero-headline-line2 { display: block; }
+
+    .hero-meta-row {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
     }
 
-    .hero-pill {
-      display: flex; align-items: center; gap: 0.4rem;
-      padding: 0.28rem 0.75rem;
-      border: 1px solid var(--border2);
-      border-radius: 99px;
-      font-size: 0.8rem; color: var(--text2);
-      background: var(--bg2);
+    .hero-tagline {
+      font-size: 1.05rem;
+      color: var(--ink-2);
+      max-width: 460px;
+      line-height: 1.6;
     }
 
-    .pill-dot { width: 5px; height: 5px; border-radius: 50%; }
-
-    .hero-ctas {
-      display: flex; align-items: center; gap: 0.85rem;
-      flex-wrap: wrap; justify-content: center;
-      margin-bottom: 3.5rem;
+    .hero-cta-row {
+      display: flex; gap: 0.65rem;
+      flex-wrap: wrap;
     }
 
     .btn-primary {
       display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.65rem 1.35rem;
-      background: var(--clay);
-      color: #fff;
-      font-weight: 600; font-size: 0.875rem;
-      border-radius: var(--radius);
+      padding: 0.85rem 1.5rem;
+      background: var(--ink);
+      color: var(--cream);
+      font-weight: 500; font-size: 0.92rem;
+      border-radius: 99px;
       transition: background 0.15s, transform 0.1s;
     }
-    .btn-primary:hover { background: var(--clay-dim); transform: translateY(-1px); }
+    .btn-primary:hover { background: var(--coral); transform: translateY(-1px); }
 
-    .btn-secondary {
+    .btn-ghost {
       display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.65rem 1.35rem;
-      border: 1px solid var(--border2);
-      color: var(--text2);
-      font-size: 0.875rem;
-      border-radius: var(--radius);
-      background: var(--bg2);
-      transition: border-color 0.15s, color 0.15s;
+      padding: 0.85rem 1.5rem;
+      background: transparent;
+      color: var(--ink);
+      font-weight: 500; font-size: 0.92rem;
+      border: 1px solid var(--line-2);
+      border-radius: 99px;
+      transition: border-color 0.15s, background 0.15s;
     }
-    .btn-secondary:hover { border-color: var(--clay-border); color: var(--text); }
+    .btn-ghost:hover { border-color: var(--ink); background: rgba(255,255,255,0.5); }
 
-    .install-strip {
-      display: flex; align-items: center; gap: 0.75rem;
-      padding: 0.6rem 1.1rem;
-      background: var(--bg3);
-      border: 1px solid var(--border2);
-      border-radius: var(--radius);
-      font-family: var(--mono);
-      font-size: 0.855rem;
-      cursor: pointer;
-      transition: border-color 0.15s;
-    }
-    .install-strip:hover { border-color: var(--clay-border); }
-    .install-strip .dollar { color: var(--clay); }
-    .install-strip .cmd { color: var(--text); }
-
-    .copy-btn {
-      display: flex; align-items: center;
-      padding: 0.2rem 0.55rem;
-      border: 1px solid var(--border2);
-      border-radius: 4px;
-      font-size: 0.7rem;
-      color: var(--text3);
-      background: var(--bg4);
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: var(--sans);
-    }
-    .copy-btn:hover { border-color: var(--clay-border); color: var(--clay-light); }
-    .copy-btn.copied { color: var(--green); border-color: rgba(93,172,126,0.35); }
-
-    /* ── DIVIDER ── */
-    .divider { border: none; border-top: 1px solid var(--border); }
-
-    /* ── SECTIONS ── */
-    .section { padding: 5rem 1.5rem; max-width: 1020px; margin: 0 auto; }
-    .section-sm { padding: 3.5rem 1.5rem; max-width: 1020px; margin: 0 auto; }
-
-    .section-label {
-      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--clay);
-      margin-bottom: 0.65rem;
+    /* ── HERO STAGE (terminal mockup with floating pills) ── */
+    .hero-stage {
+      position: relative;
+      max-width: 920px;
+      margin: 0 auto 1.5rem;
     }
 
-    h2 {
-      font-size: clamp(1.55rem, 3.5vw, 2.35rem);
-      font-weight: 800; letter-spacing: -0.03em;
-      margin-bottom: 1rem;
-      line-height: 1.15;
-    }
-
-    .section-sub {
-      font-size: 0.975rem; color: var(--text2);
-      max-width: 520px; line-height: 1.75;
-      margin-bottom: 3rem;
-    }
-
-    /* ── FLOW DIAGRAM ── */
-    .flow {
-      display: flex; align-items: stretch;
-      gap: 0; flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .flow-step {
-      display: flex; flex-direction: column; align-items: center;
-      text-align: center;
-      padding: 1.75rem 1.25rem;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      width: 186px;
-      transition: border-color 0.2s;
-    }
-    .flow-step:hover { border-color: var(--clay-border); }
-
-    .flow-icon {
-      width: 44px; height: 44px; border-radius: var(--radius);
-      background: var(--clay-glow);
-      border: 1px solid var(--clay-border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem;
-      margin-bottom: 1rem;
-    }
-
-    .flow-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text); }
-    .flow-desc  { font-size: 0.75rem; color: var(--text2); line-height: 1.55; }
-
-    .flow-arrow {
-      color: var(--text3);
-      font-size: 1rem;
-      padding: 0 0.6rem;
-      flex-shrink: 0;
-      display: flex; align-items: center;
-    }
-
-    /* ── ESCALATION ── */
-    .escalation-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .escalation-card {
-      padding: 1.65rem;
-      border-radius: var(--radius-lg);
-      border: 1px solid;
-    }
-    .escalation-card.emergency { background: var(--red-glow); border-color: var(--red-border); }
-    .escalation-card.helpline  { background: var(--amber-glow); border-color: var(--amber-border); }
-
-    .esc-tier {
-      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; margin-bottom: 0.5rem;
-    }
-    .emergency .esc-tier { color: var(--red-light); }
-    .helpline  .esc-tier { color: var(--amber); }
-
-    .esc-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.55rem; }
-
-    .esc-trigger {
-      font-size: 0.77rem; color: var(--text2); margin-bottom: 1rem;
-      font-family: var(--mono);
-      padding: 0.35rem 0.7rem;
-      background: rgba(0,0,0,0.25);
-      border-radius: 5px;
-      display: inline-block;
-    }
-
-    .esc-action { font-size: 0.82rem; color: var(--text2); line-height: 1.65; }
-    .esc-action strong { color: var(--text); }
-
-    .country-chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
-    .country-chip {
-      padding: 0.22rem 0.65rem;
-      border-radius: 5px;
-      font-size: 0.77rem; font-family: var(--mono);
-      background: var(--bg2); border: 1px solid var(--border);
-      color: var(--text2);
-    }
-
-    /* ── TABLE ── */
-    .table-wrap { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-
-    table { width: 100%; border-collapse: collapse; }
-
-    thead th {
-      padding: 0.8rem 1.25rem;
-      text-align: left;
-      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em;
-      text-transform: uppercase; color: var(--text3);
-      background: var(--bg2);
-      border-bottom: 1px solid var(--border);
-    }
-
-    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--bg2); }
-
-    tbody td { padding: 0.8rem 1.25rem; font-size: 0.865rem; }
-
-    .tag {
-      display: inline-flex; align-items: center;
-      padding: 0.18rem 0.6rem;
-      border-radius: 5px;
-      font-family: var(--mono); font-size: 0.77rem;
-      background: var(--bg4); border: 1px solid var(--border2);
-      color: var(--clay-light);
-    }
-
-    .model-badge {
-      display: inline-flex; align-items: center; gap: 0.35rem;
-      padding: 0.18rem 0.6rem;
-      border-radius: 5px;
-      font-size: 0.77rem; font-weight: 500;
-      background: var(--bg4); border: 1px solid var(--border);
-      color: var(--text);
-    }
-
-    .acc-bar { display: flex; align-items: center; gap: 0.6rem; }
-    .acc-track { flex: 1; height: 3px; background: var(--bg5); border-radius: 2px; max-width: 70px; }
-    .acc-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--clay-dim), var(--clay)); }
-    .acc-num { font-size: 0.78rem; color: var(--text2); font-family: var(--mono); min-width: 40px; }
-
-    /* ── CODE TABS ── */
-    .tabs { display: flex; gap: 0.25rem; margin-bottom: 0; }
-
-    .tab {
-      padding: 0.45rem 0.95rem;
-      font-size: 0.8rem; font-weight: 500;
-      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-      border: 1px solid var(--border);
-      border-bottom: none;
-      color: var(--text3);
-      cursor: pointer;
-      background: var(--bg2);
-      transition: all 0.12s;
-      white-space: nowrap;
-    }
-    .tab.active {
-      background: var(--bg3);
-      color: var(--clay-light);
-      border-color: var(--clay-border);
-    }
-
-    .code-block {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg);
+    .terminal {
+      background: #15140f;
+      border-radius: 18px;
+      box-shadow: 0 25px 60px -20px rgba(14,14,11,0.35), 0 8px 25px -8px rgba(14,14,11,0.2);
       overflow: hidden;
+      position: relative;
+      z-index: 2;
     }
-    .code-block.rounded { border-radius: var(--radius-lg); }
 
-    .code-header {
+    .terminal-bar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0.55rem 1rem;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg4);
+      padding: 0.7rem 1rem;
+      background: #1c1a14;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
     }
 
-    .code-dots { display: flex; gap: 0.32rem; }
-    .code-dot  { width: 10px; height: 10px; border-radius: 50%; }
-    .code-dot:nth-child(1) { background: #ff5f57; }
-    .code-dot:nth-child(2) { background: #febc2e; }
-    .code-dot:nth-child(3) { background: #28c840; }
+    .term-dots { display: flex; gap: 0.4rem; }
+    .term-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .term-dot:nth-child(1) { background: #ff5f57; }
+    .term-dot:nth-child(2) { background: #febc2e; }
+    .term-dot:nth-child(3) { background: #28c840; }
+    .term-title { font-family: var(--mono); font-size: 0.74rem; color: #6b6558; }
 
-    .code-lang { font-size: 0.7rem; color: var(--text3); font-family: var(--mono); }
-
-    pre {
-      padding: 1.5rem;
+    .term-body {
+      padding: 1.5rem 1.75rem;
       font-family: var(--mono);
-      font-size: 0.82rem;
-      line-height: 1.8;
-      overflow-x: auto;
+      font-size: 0.825rem;
+      line-height: 1.85;
       color: #ddd6c8;
+      white-space: pre;
+      overflow-x: auto;
       tab-size: 2;
     }
 
-    .kw  { color: var(--clay-light); }
-    .fn  { color: #e8c872; }
-    .st  { color: #8ecf9e; }
-    .cm  { color: #4a4540; font-style: italic; }
-    .nm  { color: #9dc5e8; }
-    .op  { color: var(--text); }
-    .ky  { color: #c594d4; }
-    .nu  { color: #b8d4a8; }
+    .term-body .prompt  { color: var(--coral); }
+    .term-body .cmd     { color: #e8e2d2; }
+    .term-body .key     { color: #8ecf9e; }
+    .term-body .num     { color: #d8a86a; }
+    .term-body .str     { color: #b6c596; }
+    .term-body .punct   { color: #6b6558; }
+    .term-body .dim     { color: #5a5448; }
+    .term-body .label   { color: #d8a86a; font-weight: 500; }
 
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
-    /* ── FEATURES GRID ── */
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      background: var(--border);
-    }
-
-    .feature-card {
-      padding: 1.75rem;
-      background: var(--bg2);
-      transition: background 0.15s;
-    }
-    .feature-card:hover { background: var(--bg3); }
-    .feature-card.span2 { grid-column: span 2; }
-
-    .feature-icon {
-      font-size: 1.3rem; margin-bottom: 1rem;
-      width: 40px; height: 40px;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--clay-subtle);
-      border: 1px solid var(--clay-border);
-      border-radius: var(--radius);
-    }
-
-    .feature-title { font-size: 0.925rem; font-weight: 600; margin-bottom: 0.45rem; color: var(--text); }
-    .feature-desc  { font-size: 0.815rem; color: var(--text2); line-height: 1.65; }
-
-    .feature-new {
-      display: inline-flex; align-items: center;
-      padding: 0.12rem 0.45rem;
-      border-radius: 4px;
-      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
-      text-transform: uppercase;
-      background: var(--clay-glow);
-      border: 1px solid var(--clay-border);
-      color: var(--clay-light);
-      vertical-align: middle;
-      margin-left: 0.3rem;
-    }
-
-    /* ── PROVIDERS ── */
-    .providers { display: flex; flex-wrap: wrap; gap: 0.65rem; justify-content: center; }
-
-    .provider-chip {
-      display: flex; align-items: center; gap: 0.5rem;
+    /* Floating pills */
+    .float-pill {
+      position: absolute;
+      display: inline-flex; align-items: center; gap: 0.5rem;
       padding: 0.55rem 1rem;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      font-size: 0.845rem; font-weight: 500;
-      transition: border-color 0.15s;
+      background: var(--white);
+      border-radius: 99px;
+      box-shadow: 0 12px 30px -12px rgba(14,14,11,0.25), 0 2px 6px rgba(14,14,11,0.06);
+      font-size: 0.84rem; font-weight: 500;
+      color: var(--ink);
+      z-index: 3;
+      white-space: nowrap;
     }
-    .provider-chip:hover { border-color: var(--clay-border); }
-    .provider-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--clay); }
+
+    .float-pill .pill-icon {
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem;
+    }
+    .float-pill .pill-icon.green { background: var(--green-soft); color: var(--green-2); }
+    .float-pill .pill-icon.coral { background: var(--coral-soft); color: var(--coral); }
+    .float-pill .pill-icon.amber { background: var(--amber-soft); color: var(--amber); }
+
+    .float-pill.tl { top: -16px;    left: -28px; }
+    .float-pill.tr { top: 32px;     right: -36px; }
+    .float-pill.bl { bottom: 60px;  left: -52px; }
+    .float-pill.br { bottom: 16px;  right: -28px; }
+
+    /* Mega wordmark below stage */
+    .mega-wordmark {
+      font-family: var(--display);
+      font-weight: 900;
+      font-size: clamp(4rem, 17vw, 14rem);
+      line-height: 0.85;
+      letter-spacing: -0.06em;
+      color: var(--ink);
+      text-align: center;
+      margin: -1rem auto 0;
+      padding-bottom: 2.5rem;
+      max-width: 1280px;
+    }
+
+    /* ── DIVIDER ROW (small captions strip) ── */
+    .strip {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 1.25rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 2rem; flex-wrap: wrap;
+      max-width: 1280px; margin: 0 auto;
+    }
+
+    .strip-label {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+
+    .strip-providers {
+      display: flex; align-items: center; gap: 1.75rem;
+      font-family: var(--display); font-weight: 600;
+      font-size: 0.95rem; color: var(--ink-2);
+    }
+    .strip-providers span { letter-spacing: -0.01em; }
+    .strip-providers .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--ink-4); }
+
+    /* ── SECTIONS ── */
+    .section {
+      padding: 6rem 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--ink-3);
+      margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .section-label::before {
+      content: ""; width: 24px; height: 1px; background: var(--ink-3);
+    }
+
+    h2 {
+      font-family: var(--display);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.02;
+      margin-bottom: 1.25rem;
+      max-width: 880px;
+    }
+
+    h2 em {
+      font-style: italic;
+      font-weight: 500;
+      color: var(--coral);
+      font-family: 'Instrument Serif', serif;
+    }
+
+    .section-intro {
+      font-size: 1.05rem;
+      color: var(--ink-2);
+      max-width: 560px;
+      line-height: 1.65;
+      margin-bottom: 4rem;
+    }
+
+    /* ── HOW IT WORKS (numbered editorial) ── */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .step {
+      padding: 2.25rem 1.5rem 2rem 0;
+      border-right: 1px solid var(--line);
+      position: relative;
+    }
+    .step:last-child { border-right: none; padding-right: 0; }
+    .step:not(:first-child) { padding-left: 1.5rem; }
+
+    .step-num {
+      font-family: var(--display);
+      font-size: 0.78rem; font-weight: 700;
+      color: var(--coral);
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    .step-title {
+      font-family: var(--display);
+      font-size: 1.45rem; font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 0.85rem;
+    }
+
+    .step-desc {
+      font-size: 0.9rem;
+      color: var(--ink-3);
+      line-height: 1.6;
+    }
+
+    /* ── CRISIS SECTION ── */
+    .crisis-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .crisis-card {
+      padding: 2.5rem 2rem;
+      border-radius: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .crisis-card.tier-1 {
+      background: var(--ink);
+      color: var(--cream);
+    }
+    .crisis-card.tier-2 {
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+
+    .crisis-tier-label {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.32rem 0.85rem;
+      border-radius: 99px;
+      font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+    .tier-1 .crisis-tier-label {
+      background: rgba(196,69,80,0.18);
+      color: #f0a9af;
+    }
+    .tier-2 .crisis-tier-label {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .crisis-card-title {
+      font-family: var(--display);
+      font-size: 2rem; font-weight: 800;
+      letter-spacing: -0.03em; line-height: 1.05;
+      margin-bottom: 1rem;
+    }
+
+    .crisis-trigger {
+      display: inline-block;
+      font-family: var(--mono); font-size: 0.78rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      margin-bottom: 1.25rem;
+    }
+    .tier-1 .crisis-trigger {
+      background: rgba(255,255,255,0.08);
+      color: #d8d1bd;
+    }
+    .tier-2 .crisis-trigger {
+      background: var(--cream);
+      color: var(--ink-2);
+    }
+
+    .crisis-desc {
+      font-size: 0.93rem;
+      line-height: 1.65;
+    }
+    .tier-1 .crisis-desc { color: #c0bba8; }
+    .tier-2 .crisis-desc { color: var(--ink-3); }
+    .crisis-desc strong { color: var(--ink); font-weight: 600; }
+    .tier-1 .crisis-desc strong { color: var(--cream); }
+
+    .country-strip {
+      padding: 2rem 0 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .country-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0;
+    }
+
+    .country-cell {
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .country-cell .flag { font-size: 1.05rem; }
+    .country-cell .name { font-size: 0.86rem; color: var(--ink-2); flex: 1; }
+    .country-cell .num { font-family: var(--mono); font-size: 0.78rem; color: var(--ink-3); }
+
+    /* ── ROUTING TABLE ── */
+    .routing-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    .routing-card thead th {
+      padding: 1.1rem 1.5rem;
+      text-align: left;
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--ink-3);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .routing-card tbody tr { border-bottom: 1px solid var(--line); }
+    .routing-card tbody tr:last-child { border-bottom: none; }
+    .routing-card tbody tr:hover { background: var(--paper); }
+    .routing-card tbody td { padding: 1.1rem 1.5rem; font-size: 0.9rem; }
+
+    .cat-tag {
+      font-family: var(--mono); font-size: 0.82rem;
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .provider-pill {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.3rem 0.75rem;
+      background: var(--cream);
+      border-radius: 99px;
+      font-size: 0.82rem; font-weight: 500;
+    }
+    .provider-pill .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink); }
+
+    .acc-cell { display: flex; align-items: center; gap: 0.75rem; min-width: 120px; }
+    .acc-bar { flex: 1; max-width: 90px; height: 4px; background: var(--cream-2); border-radius: 2px; overflow: hidden; }
+    .acc-fill { height: 100%; background: var(--ink); border-radius: 2px; }
+    .acc-num { font-family: var(--mono); font-size: 0.82rem; color: var(--ink-2); min-width: 50px; }
+
+    /* ── CODE EXAMPLES ── */
+    .docs-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
+
+    .docs-side {
+      position: sticky; top: 90px;
+    }
+
+    .docs-side-label {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--ink-3);
+      margin-bottom: 1rem;
+    }
+
+    .docs-tabs { display: flex; flex-direction: column; gap: 0.25rem; }
+
+    .docs-tab {
+      padding: 0.65rem 1rem;
+      font-size: 0.9rem;
+      color: var(--ink-3);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.15s;
+      text-align: left;
+      background: transparent;
+      border: none;
+      font-family: var(--sans);
+      font-weight: 500;
+    }
+    .docs-tab:hover { color: var(--ink); }
+    .docs-tab.active {
+      background: var(--ink);
+      color: var(--cream);
+    }
+
+    .docs-codeblock {
+      background: #15140f;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 12px 30px -15px rgba(14,14,11,0.2);
+    }
+
+    .docs-codeblock .term-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 1.1rem;
+      background: #1c1a14;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .docs-codeblock pre {
+      padding: 1.65rem 1.85rem;
+      font-family: var(--mono);
+      font-size: 0.83rem;
+      line-height: 1.85;
+      color: #ddd6c8;
+      overflow-x: auto;
+      tab-size: 2;
+    }
+
+    .kw  { color: var(--coral); }
+    .fn  { color: #d8a86a; }
+    .st  { color: #8ecf9e; }
+    .cm  { color: #5a5448; font-style: italic; }
+    .nm  { color: #b6c596; }
+    .op  { color: #ddd6c8; }
+    .nu  { color: #c4a87c; }
+
+    .docs-panel { display: none; }
+    .docs-panel.active { display: block; }
+
+    /* ── FEATURES (large editorial cards) ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .feature {
+      padding: 2.25rem 2rem;
+      background: var(--paper);
+      transition: background 0.2s;
+    }
+    .feature:hover { background: var(--white); }
+
+    .feature-num {
+      font-family: var(--mono);
+      font-size: 0.7rem; color: var(--ink-4);
+      margin-bottom: 1.5rem;
+    }
+
+    .feature h3 {
+      font-family: var(--display);
+      font-size: 1.3rem; font-weight: 700;
+      letter-spacing: -0.02em; line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+    .feature h3 em {
+      font-style: italic;
+      font-weight: 500;
+      color: var(--coral);
+      font-family: 'Instrument Serif', serif;
+    }
+
+    .feature p {
+      font-size: 0.9rem;
+      color: var(--ink-3);
+      line-height: 1.6;
+    }
 
     /* ── CONFIG TABLE ── */
-    .config-table { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-
-    .config-table table { width: 100%; border-collapse: collapse; }
-    .config-table thead th {
-      padding: 0.75rem 1.1rem;
-      text-align: left;
-      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em;
-      text-transform: uppercase; color: var(--text3);
-      background: var(--bg2);
-      border-bottom: 1px solid var(--border);
+    .config-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
     }
-    .config-table tbody tr { border-bottom: 1px solid var(--border); }
-    .config-table tbody tr:last-child { border-bottom: none; }
-    .config-table tbody tr:hover { background: var(--bg2); }
-    .config-table tbody td { padding: 0.75rem 1.1rem; font-size: 0.835rem; }
-    .config-table .env-key { font-family: var(--mono); font-size: 0.77rem; color: var(--clay-light); }
-    .config-table .env-default { font-family: var(--mono); font-size: 0.75rem; color: var(--text3); }
-    .config-table .env-desc { color: var(--text2); line-height: 1.5; }
+
+    .config-card table { width: 100%; }
+    .config-card thead th {
+      padding: 1rem 1.5rem;
+      text-align: left;
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--ink-3);
+      border-bottom: 1px solid var(--line);
+    }
+    .config-card tbody tr { border-bottom: 1px solid var(--line); }
+    .config-card tbody tr:last-child { border-bottom: none; }
+    .config-card tbody tr:hover { background: var(--paper); }
+    .config-card tbody td {
+      padding: 0.95rem 1.5rem;
+      font-size: 0.87rem;
+      vertical-align: top;
+    }
+    .config-card .env { font-family: var(--mono); font-size: 0.78rem; color: var(--ink); }
+    .config-card .def { font-family: var(--mono); font-size: 0.76rem; color: var(--ink-4); }
+    .config-card .desc { color: var(--ink-3); line-height: 1.55; }
+
+    /* ── INSTALL CTA ── */
+    .install {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 6rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .install-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .install h2 {
+      font-family: var(--display);
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.0;
+      color: var(--cream);
+      margin-bottom: 1.25rem;
+    }
+    .install h2 em {
+      font-style: italic; font-weight: 500;
+      color: #e8a08a;
+      font-family: 'Instrument Serif', serif;
+    }
+
+    .install-sub {
+      font-size: 1.05rem;
+      color: #b8b29c;
+      line-height: 1.65;
+      margin-bottom: 2rem;
+      max-width: 460px;
+    }
+
+    .install-pills {
+      display: flex; gap: 0.5rem;
+      flex-wrap: wrap; margin-bottom: 2rem;
+    }
+    .install-pill {
+      padding: 0.4rem 0.9rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 99px;
+      font-size: 0.78rem;
+      color: #b8b29c;
+    }
+
+    .install-cmds { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .cmd-box {
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 0.85rem 1.1rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      font-family: var(--mono); font-size: 0.86rem;
+      color: var(--cream);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .cmd-box:hover { border-color: var(--coral); background: rgba(255,255,255,0.06); }
+    .cmd-box .arrow { color: var(--coral); }
+    .cmd-box .label-pre { color: #b8b29c; font-size: 0.74rem; min-width: 56px; }
+
+    .install-buttons {
+      margin-top: 2rem;
+      display: flex; gap: 0.65rem; flex-wrap: wrap;
+    }
+    .btn-cream {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.85rem 1.5rem;
+      background: var(--cream);
+      color: var(--ink);
+      font-weight: 500; font-size: 0.92rem;
+      border-radius: 99px;
+      transition: background 0.15s;
+    }
+    .btn-cream:hover { background: var(--white); }
+    .btn-outline-cream {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.85rem 1.5rem;
+      border: 1px solid rgba(255,255,255,0.25);
+      color: var(--cream);
+      font-weight: 500; font-size: 0.92rem;
+      border-radius: 99px;
+      transition: border-color 0.15s;
+    }
+    .btn-outline-cream:hover { border-color: var(--cream); }
 
     /* ── CHANGELOG ── */
-    .changelog { display: flex; flex-direction: column; gap: 0; }
+    .changelog-list { display: flex; flex-direction: column; gap: 0; }
 
-    .changelog-item {
-      display: flex; gap: 1.5rem;
-      padding: 2rem 0;
-      border-bottom: 1px solid var(--border);
+    .changelog-row {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 2rem;
+      padding: 2.5rem 0;
+      border-bottom: 1px solid var(--line);
     }
-    .changelog-item:last-child { border-bottom: none; }
+    .changelog-row:first-child { border-top: 1px solid var(--line); }
 
-    .changelog-meta { min-width: 120px; flex-shrink: 0; }
-
-    .changelog-version {
-      font-family: var(--mono); font-size: 0.8rem; font-weight: 600;
-      color: var(--clay-light); margin-bottom: 0.3rem;
+    .cl-meta { display: flex; flex-direction: column; gap: 0.35rem; }
+    .cl-version {
+      font-family: var(--display);
+      font-weight: 800; font-size: 1.6rem;
+      letter-spacing: -0.02em;
     }
-    .changelog-date { font-size: 0.75rem; color: var(--text3); }
+    .cl-date { font-size: 0.82rem; color: var(--ink-4); }
 
-    .changelog-body h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; }
-    .changelog-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+    .cl-body h3 {
+      font-family: var(--display);
+      font-size: 1.35rem; font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
 
-    .changelog-tag {
-      padding: 0.15rem 0.55rem;
-      border-radius: 4px;
+    .cl-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.25rem; }
+    .cl-tag {
+      padding: 0.18rem 0.6rem;
+      border-radius: 99px;
       font-size: 0.7rem; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.05em;
+      letter-spacing: 0.04em; text-transform: uppercase;
     }
-    .changelog-tag.new     { background: rgba(93,172,126,0.1); color: var(--green); border: 1px solid rgba(93,172,126,0.25); }
-    .changelog-tag.fix     { background: var(--red-glow); color: var(--red-light); border: 1px solid var(--red-border); }
-    .changelog-tag.improve { background: var(--clay-glow); color: var(--clay-light); border: 1px solid var(--clay-border); }
+    .cl-tag.new     { background: var(--green-soft); color: var(--green-2); }
+    .cl-tag.fix     { background: var(--rose-soft); color: var(--rose); }
+    .cl-tag.improve { background: var(--coral-soft); color: var(--coral); }
 
-    .changelog-list { list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
-    .changelog-list li {
-      font-size: 0.845rem; color: var(--text2); line-height: 1.55;
-      display: flex; gap: 0.6rem;
+    .cl-items { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+    .cl-items li {
+      font-size: 0.92rem; color: var(--ink-3); line-height: 1.6;
+      display: grid; grid-template-columns: 80px 1fr; gap: 0.85rem;
     }
-    .changelog-list li::before { content: "—"; color: var(--text3); flex-shrink: 0; }
-    .changelog-list li strong { color: var(--text); }
-
-    /* ── INSTALL SECTION ── */
-    .install-section {
-      text-align: center;
-      padding: 5.5rem 1.5rem;
-      background: linear-gradient(180deg, transparent, rgba(204,120,92,0.035), transparent);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
+    .cl-items li .imp {
+      font-family: var(--mono); font-size: 0.72rem;
+      font-weight: 600; text-transform: uppercase;
+      color: var(--ink-4);
+      padding-top: 0.25rem;
     }
-
-    .install-cols {
-      display: flex; gap: 1.5rem;
-      margin-top: 2.5rem; max-width: 920px;
-      margin-left: auto; margin-right: auto;
-      flex-wrap: wrap; text-align: left;
-    }
-
-    .install-col-commands { flex: 1; min-width: 240px; }
-    .install-col-output   { flex: 1.4; min-width: 320px; }
-
-    .col-label {
-      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em;
-      text-transform: uppercase; color: var(--text3); margin-bottom: 0.75rem;
-    }
-
-    .cmd-line {
-      display: flex; align-items: center; gap: 0.75rem;
-      padding: 0.6rem 1.1rem;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      font-family: var(--mono); font-size: 0.82rem;
-      margin-bottom: 0.5rem;
-    }
-    .cmd-line .dollar { color: var(--clay); }
+    .cl-items li .imp.crit { color: var(--rose); }
+    .cl-items li .imp.high { color: var(--coral); }
+    .cl-items li strong { color: var(--ink); font-weight: 600; }
 
     /* ── FOOTER ── */
     footer {
-      padding: 3rem 2rem;
-      border-top: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 1.5rem;
+      padding: 4rem 1.5rem 2.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      border-top: 1px solid var(--line);
     }
 
-    .footer-logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.95rem; }
-    .footer-links { display: flex; gap: 1.25rem; flex-wrap: wrap; }
-    .footer-links a { font-size: 0.83rem; color: var(--text3); transition: color 0.12s; }
-    .footer-links a:hover { color: var(--clay-light); }
-    .footer-copy { font-size: 0.78rem; color: var(--text3); }
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    .footer-brand .nav-logo { font-size: 1.4rem; margin-bottom: 0.85rem; }
+    .footer-brand p {
+      font-size: 0.88rem; color: var(--ink-3); line-height: 1.6;
+      max-width: 280px;
+    }
+
+    .footer-col h4 {
+      font-family: var(--display);
+      font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--ink-2);
+      margin-bottom: 1rem;
+    }
+    .footer-col a {
+      display: block;
+      font-size: 0.88rem;
+      color: var(--ink-3);
+      padding: 0.3rem 0;
+      transition: color 0.15s;
+    }
+    .footer-col a:hover { color: var(--coral); }
+
+    .footer-bottom {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.82rem; color: var(--ink-4);
+    }
 
     /* ── INLINE CODE ── */
     code {
       font-family: var(--mono);
-      font-size: 0.88em;
-      color: var(--clay-light);
-      background: var(--clay-subtle);
-      padding: 0.1em 0.35em;
+      font-size: 0.86em;
+      background: rgba(14,14,11,0.06);
+      padding: 0.12em 0.4em;
       border-radius: 4px;
+      color: var(--ink-2);
     }
 
     /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) {
+      .docs-grid { grid-template-columns: 1fr; }
+      .docs-side { position: static; }
+      .docs-tabs { flex-direction: row; flex-wrap: wrap; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .install-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+      .crisis-grid { grid-template-columns: 1fr; }
+      .float-pill.tl { top: -14px; left: 0; }
+      .float-pill.tr { top: -14px; right: 0; }
+      .float-pill.bl { bottom: 14px; left: 0; }
+      .float-pill.br { bottom: 14px; right: 0; }
+    }
+
     @media (max-width: 768px) {
-      .section { padding: 3.5rem 1.25rem; }
-      .escalation-grid { grid-template-columns: 1fr; }
-      .changelog-item { flex-direction: column; gap: 0.75rem; }
-      .changelog-meta { min-width: unset; display: flex; gap: 1rem; align-items: baseline; }
-    }
-
-    @media (max-width: 640px) {
-      nav { padding: 0 1rem; }
-      .nav-links a:not(.nav-github):not(:last-of-type) { display: none; }
-
-      .hero { padding: 4rem 1.1rem 3rem; }
-      .hero-ctas { flex-direction: column; width: 100%; }
-      .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
-      .install-strip { width: 100%; }
-
-      .section { padding: 3rem 1rem; }
-      .section-sub { max-width: 100%; }
-
-      .flow { flex-direction: column; align-items: center; }
-      .flow-step { width: 100%; max-width: 300px; }
-      .flow-arrow { transform: rotate(90deg); }
-
-      .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      table { min-width: 480px; }
-
-      .tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
-      .tab { flex-shrink: 0; padding: 0.4rem 0.7rem; font-size: 0.75rem; }
-      pre { font-size: 0.75rem; padding: 1.1rem; }
-
-      .features { grid-template-columns: 1fr !important; }
-      .feature-card.span2 { grid-column: span 1; }
-
-      .install-cols { flex-direction: column; }
-      .install-col-commands, .install-col-output { min-width: unset; width: 100%; flex: unset; }
-      .install-section { padding: 3.5rem 1rem; }
-
-      footer { flex-direction: column; align-items: flex-start; padding: 2rem 1rem; gap: 1rem; }
-    }
-
-    @media (max-width: 400px) {
-      h1 { font-size: 2.1rem; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .hero { padding: 2.5rem 1.25rem 0; }
+      .hero-meta-row { flex-direction: column; align-items: flex-start; }
+      .section { padding: 4rem 1.25rem; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .step { border-right: none; border-bottom: 1px solid var(--line); padding: 1.75rem 0 !important; }
+      .step:last-child { border-bottom: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .changelog-row { grid-template-columns: 1fr; gap: 1rem; }
+      .cl-meta { flex-direction: row; align-items: baseline; gap: 1rem; }
+      .footer-top { grid-template-columns: 1fr; gap: 2rem; }
+      .float-pill { font-size: 0.78rem; padding: 0.45rem 0.85rem; }
+      .term-body { font-size: 0.74rem; padding: 1.1rem 1.25rem; }
+      .docs-codeblock pre { font-size: 0.74rem; padding: 1.1rem 1.25rem; }
+      .config-card { overflow-x: auto; }
+      .routing-card { overflow-x: auto; }
+      .config-card table, .routing-card table { min-width: 540px; }
     }
   </style>
 </head>
@@ -708,346 +923,372 @@
 
 <!-- ── NAV ── -->
 <nav>
-  <a href="#" class="nav-logo">
-    <div class="nav-logo-icon">🛡️</div>
-    SafetyRouter
-  </a>
-  <div class="nav-links">
-    <a href="#how-it-works">How it works</a>
-    <a href="#crisis">Crisis Safety</a>
-    <a href="#code">Docs</a>
-    <a href="#config">Config</a>
-    <a href="#changelog">Changelog</a>
-    <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="nav-github">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-      GitHub
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-mark">SR</div>
+      SafetyRouter
     </a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#crisis">Crisis safety</a>
+      <a href="#docs">Documentation</a>
+      <a href="#changelog">Changelog</a>
+      <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="nav-cta">
+        Get started
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
   </div>
 </nav>
 
 <!-- ── HERO ── -->
 <section class="hero">
   <div class="hero-eyebrow">
-    <div class="hero-eyebrow-dot"></div>
-    Open Source &nbsp;·&nbsp; v0.2.3 &nbsp;·&nbsp; Apache 2.0
+    <span class="hero-eyebrow-dot"></span>
+    v0.2.3 &nbsp;·&nbsp; Open Source &nbsp;·&nbsp; Apache 2.0
   </div>
 
-  <h1>Route every prompt to the<br/><em>safest possible answer.</em></h1>
+  <h1 class="hero-headline">
+    Route every prompt to the<br/>
+    <em>safest</em> possible answer.
+  </h1>
 
-  <p class="hero-sub">
-    SafetyRouter classifies bias type and mental health risk locally at zero API cost,
-    routes to the model with the highest benchmark accuracy for that category,
-    and escalates to crisis services when a human is the right answer.
-  </p>
+  <div class="hero-meta-row">
+    <p class="hero-tagline">
+      SafetyRouter classifies bias and mental health risk locally at zero API cost,
+      routes to the best specialist model, and escalates to crisis services when a
+      human is the right answer.
+    </p>
+    <div class="hero-cta-row">
+      <a href="#docs" class="btn-primary">
+        Read the docs
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="btn-ghost">View on GitHub</a>
+    </div>
+  </div>
 
-  <div class="hero-pills">
-    <div class="hero-pill">
-      <div class="pill-dot" style="background:var(--clay)"></div>
-      9 bias categories
+  <!-- ── HERO STAGE: floating pills + terminal ── -->
+  <div class="hero-stage">
+
+    <div class="float-pill tl">
+      <span class="pill-icon green">●</span>
+      Running locally · 0 API cost
     </div>
-    <div class="hero-pill">
-      <div class="pill-dot" style="background:var(--amber)"></div>
-      4 mental health signals
+
+    <div class="float-pill tr">
+      <span class="pill-icon coral">9</span>
+      bias categories scored
     </div>
-    <div class="hero-pill">
-      <div class="pill-dot" style="background:var(--red)"></div>
+
+    <div class="float-pill bl">
+      <span class="pill-icon amber">!</span>
       2-tier crisis escalation
     </div>
-    <div class="hero-pill">
-      <div class="pill-dot" style="background:var(--green)"></div>
-      Bias rephrasing
+
+    <div class="float-pill br">
+      <span class="pill-icon green">↑</span>
+      96.7% routing accuracy
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="term-dots"><div class="term-dot"></div><div class="term-dot"></div><div class="term-dot"></div></div>
+        <div class="term-title">~/safety-router · zsh</div>
+        <div style="width:42px"></div>
+      </div>
+<div class="term-body"><span class="prompt">$</span> <span class="cmd">safetyrouter route "Are older workers less productive?"</span>
+
+<span class="punct">{</span>
+  <span class="key">"routing_decision"</span><span class="punct">:</span> <span class="punct">{</span>
+    <span class="key">"selected_model"</span><span class="punct">:</span> <span class="str">"claude"</span><span class="punct">,</span>
+    <span class="key">"bias_category"</span><span class="punct">:</span>  <span class="str">"age"</span><span class="punct">,</span>
+    <span class="key">"confidence"</span><span class="punct">:</span>     <span class="num">0.89</span><span class="punct">,</span>
+    <span class="key">"model_accuracy"</span><span class="punct">:</span> <span class="num">100.0</span><span class="punct">,</span>
+    <span class="key">"reason"</span><span class="punct">:</span> <span class="str">"Routed to claude — 100% benchmark accuracy"</span>
+  <span class="punct">},</span>
+  <span class="key">"bias_analysis"</span><span class="punct">:</span> <span class="punct">{</span>
+    <span class="key">"age"</span><span class="punct">:</span> <span class="punct">{</span> <span class="key">"probability"</span><span class="punct">:</span> <span class="num">0.89</span> <span class="punct">},</span>
+    <span class="key">"rephrased_text"</span><span class="punct">:</span> <span class="punct">{</span>
+      <span class="key">"original"</span><span class="punct">:</span>  <span class="str">"Are older workers less productive?"</span><span class="punct">,</span>
+      <span class="key">"rephrased"</span><span class="punct">:</span> <span class="str">"How does experience shape productivity?"</span><span class="punct">,</span>
+      <span class="key">"meaning_preserved"</span><span class="punct">:</span> <span class="kw">true</span>
+    <span class="punct">}</span>
+  <span class="punct">},</span>
+  <span class="key">"response_time"</span><span class="punct">:</span> <span class="str">"9.43s"</span>
+<span class="punct">}</span></div>
     </div>
   </div>
 
-  <div class="hero-ctas">
-    <a href="#code" class="btn-primary">
-      Get Started
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </a>
-    <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="btn-secondary">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-      View on GitHub
-    </a>
-  </div>
-
-  <div class="install-strip" onclick="copyInstall(this)">
-    <span class="dollar">$</span>
-    <span class="cmd">pip install "safetyrouter[all]"</span>
-    <span style="flex:1"></span>
-    <button class="copy-btn" id="copy-hero">Copy</button>
-  </div>
+  <div class="mega-wordmark">SafetyRouter</div>
 </section>
 
-<hr class="divider" />
+<!-- ── PROVIDERS STRIP ── -->
+<div class="strip">
+  <div class="strip-label">Routes across</div>
+  <div class="strip-providers">
+    <span>OpenAI</span><div class="dot"></div>
+    <span>Anthropic</span><div class="dot"></div>
+    <span>Google</span><div class="dot"></div>
+    <span>Groq</span><div class="dot"></div>
+    <span>Ollama</span>
+  </div>
+  <div class="strip-label">5 providers · BYO welcome</div>
+</div>
 
 <!-- ── HOW IT WORKS ── -->
-<section class="section" id="how-it-works">
+<section class="section" id="how">
   <div class="section-label">How it works</div>
-  <h2>A safer path to a fairer answer</h2>
-  <p class="section-sub">
+  <h2>A safer path<br/>to a <em>fairer</em> answer.</h2>
+  <p class="section-intro">
     Every prompt is classified locally for bias and mental health risk before any API call is made.
-    The router decides whether to escalate, route to a specialist model, or answer normally.
+    The router then decides — escalate, route to a specialist, or answer normally.
   </p>
 
-  <div class="flow">
-    <div class="flow-step">
-      <div class="flow-icon">📝</div>
-      <div class="flow-title">Your Prompt</div>
-      <div class="flow-desc">Any text sent to SafetyRouter via SDK, CLI, or HTTP</div>
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-num">— 01</div>
+      <div class="step-title">Receive prompt</div>
+      <div class="step-desc">Any text sent via SDK, CLI, or HTTP. Input is length-validated up to 10,000 characters before classification.</div>
     </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-icon">🔍</div>
-      <div class="flow-title">Local Classify</div>
-      <div class="flow-desc">gemma3n:e2b scores 9 bias + 4 mental health signals on-device — zero API cost</div>
+    <div class="step">
+      <div class="step-num">— 02</div>
+      <div class="step-title">Classify locally</div>
+      <div class="step-desc">gemma3n:e2b scores 9 bias categories and 4 mental health signals on-device via Ollama. Zero API cost, zero data egress.</div>
     </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-icon">🔀</div>
-      <div class="flow-title">Route or Escalate</div>
-      <div class="flow-desc">Emergency → skip LLM, show crisis line. Helpline → LLM + appended helpline. Otherwise → bias-specialist model</div>
+    <div class="step">
+      <div class="step-num">— 03</div>
+      <div class="step-title">Route or escalate</div>
+      <div class="step-desc">Emergency → skip LLM, return crisis line. Helpline → LLM + appended support info. Otherwise → route to bias-specialist model.</div>
     </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-icon">✅</div>
-      <div class="flow-title">Safe Response</div>
-      <div class="flow-desc">Fair answer + rephrased bias-free text, or crisis resources if needed</div>
+    <div class="step">
+      <div class="step-num">— 04</div>
+      <div class="step-title">Safe response</div>
+      <div class="step-desc">Fair answer plus a rephrased bias-free version of your prompt — or crisis resources if a human is the right answer.</div>
     </div>
   </div>
 </section>
 
-<hr class="divider" />
-
-<!-- ── CRISIS ESCALATION ── -->
-<section class="section" id="crisis">
-  <div class="section-label">Crisis Safety</div>
-  <h2>Two-tier human escalation</h2>
-  <p class="section-sub">
+<!-- ── CRISIS SAFETY ── -->
+<section class="section" id="crisis" style="padding-top:3rem;">
+  <div class="section-label">Crisis safety</div>
+  <h2>When a human is<br/>the <em>right</em> answer.</h2>
+  <p class="section-intro">
     When the mental health classifier detects risk, SafetyRouter steps aside.
     All classification runs locally — no risk signals leave your machine.
   </p>
 
-  <div class="escalation-grid">
-    <div class="escalation-card emergency">
-      <div class="esc-tier">Tier 1 — Emergency</div>
-      <div class="esc-title">LLM skipped entirely</div>
-      <div class="esc-trigger">self_harm ≥ 0.70</div>
-      <div class="esc-action">
-        <strong>No model is called.</strong> A crisis block is returned with the local emergency number and helpline for the user's country. Session transcript is saved to <code>~/.safetyrouter/sessions/</code> with <code>0o600</code> permissions.
+  <div class="crisis-grid">
+    <div class="crisis-card tier-1">
+      <div class="crisis-tier-label">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+        Tier 1 — Emergency
       </div>
+      <div class="crisis-card-title">LLM is skipped<br/>entirely.</div>
+      <div class="crisis-trigger">self_harm ≥ 0.70</div>
+      <p class="crisis-desc">
+        <strong>No model is called.</strong> A crisis block is returned with the local
+        emergency number and helpline for the user's country. Session transcript is
+        saved to <code style="background:rgba(255,255,255,0.08); color:#e8a08a;">~/.safetyrouter/sessions/</code>
+        with <code style="background:rgba(255,255,255,0.08); color:#e8a08a;">0o600</code> permissions.
+      </p>
     </div>
-    <div class="escalation-card helpline">
-      <div class="esc-tier">Tier 2 — Helpline</div>
-      <div class="esc-title">LLM responds + helpline appended</div>
-      <div class="esc-trigger">severe_distress or existential_crisis ≥ 0.60</div>
-      <div class="esc-action">
-        <strong>Normal routing proceeds.</strong> The LLM response is returned with the crisis helpline number and webchat link appended below — the user gets both a helpful answer and a path to human support.
-      </div>
+    <div class="crisis-card tier-2">
+      <div class="crisis-tier-label">Tier 2 — Helpline</div>
+      <div class="crisis-card-title" style="color:var(--ink)">LLM responds<br/>+ helpline.</div>
+      <div class="crisis-trigger">severe_distress ≥ 0.60</div>
+      <p class="crisis-desc">
+        <strong>Normal routing proceeds.</strong> The LLM response is returned with
+        the crisis helpline number and webchat link appended below — the user gets
+        both a helpful answer and a clear path to human support.
+      </p>
     </div>
   </div>
 
-  <div style="margin-bottom:1.25rem">
-    <div class="col-label" style="margin-bottom:0.75rem">Built-in crisis resources for 15 countries</div>
-    <div class="country-chips">
-      <span class="country-chip">🇺🇸 US — 988</span>
-      <span class="country-chip">🇬🇧 UK — 116 123</span>
-      <span class="country-chip">🇨🇦 CA — 1-833-456-4566</span>
-      <span class="country-chip">🇦🇺 AU — 13 11 14</span>
-      <span class="country-chip">🇮🇳 IN — 9152987821</span>
-      <span class="country-chip">🇳🇿 NZ — 1737</span>
-      <span class="country-chip">🇩🇪 DE — 0800 111 0 111</span>
-      <span class="country-chip">🇫🇷 FR — 3114</span>
-      <span class="country-chip">🇯🇵 JP — 0120-783-556</span>
-      <span class="country-chip">🇧🇷 BR — 188</span>
-      <span class="country-chip">🇲🇽 MX — 800 290 0024</span>
-      <span class="country-chip">🇿🇦 ZA — 0800 567 567</span>
-      <span class="country-chip">🇸🇬 SG — 1800 221 4444</span>
-      <span class="country-chip">🇮🇪 IE — 116 123</span>
-      <span class="country-chip">🇲🇾 MY — 015-4882 3500</span>
-      <span class="country-chip" style="border-style:dashed; color:var(--text3)">+ PRs welcome</span>
+  <div class="country-strip">
+    <div class="docs-side-label" style="margin-bottom:1.25rem;">15 countries supported out of the box</div>
+    <div class="country-grid">
+      <div class="country-cell"><span class="flag">🇺🇸</span><span class="name">United States</span><span class="num">988</span></div>
+      <div class="country-cell"><span class="flag">🇬🇧</span><span class="name">United Kingdom</span><span class="num">116 123</span></div>
+      <div class="country-cell"><span class="flag">🇨🇦</span><span class="name">Canada</span><span class="num">1-833-456</span></div>
+      <div class="country-cell"><span class="flag">🇦🇺</span><span class="name">Australia</span><span class="num">13 11 14</span></div>
+      <div class="country-cell"><span class="flag">🇮🇳</span><span class="name">India</span><span class="num">9152987821</span></div>
+      <div class="country-cell"><span class="flag">🇳🇿</span><span class="name">New Zealand</span><span class="num">1737</span></div>
+      <div class="country-cell"><span class="flag">🇩🇪</span><span class="name">Germany</span><span class="num">0800 111</span></div>
+      <div class="country-cell"><span class="flag">🇫🇷</span><span class="name">France</span><span class="num">3114</span></div>
+      <div class="country-cell"><span class="flag">🇯🇵</span><span class="name">Japan</span><span class="num">0120-783</span></div>
+      <div class="country-cell"><span class="flag">🇧🇷</span><span class="name">Brazil</span><span class="num">188</span></div>
+      <div class="country-cell"><span class="flag">🇲🇽</span><span class="name">Mexico</span><span class="num">800 290</span></div>
+      <div class="country-cell"><span class="flag">🇿🇦</span><span class="name">South Africa</span><span class="num">0800 567</span></div>
+      <div class="country-cell"><span class="flag">🇸🇬</span><span class="name">Singapore</span><span class="num">1800 221</span></div>
+      <div class="country-cell"><span class="flag">🇮🇪</span><span class="name">Ireland</span><span class="num">116 123</span></div>
+      <div class="country-cell"><span class="flag">🇲🇾</span><span class="name">Malaysia</span><span class="num">015-4882</span></div>
     </div>
   </div>
 </section>
 
-<hr class="divider" />
-
 <!-- ── ROUTING TABLE ── -->
-<section class="section">
-  <div class="section-label">Routing Table</div>
-  <h2>Every bias type has a specialist</h2>
-  <p class="section-sub">
+<section class="section" style="padding-top:3rem;">
+  <div class="section-label">Routing table</div>
+  <h2>Every bias type<br/>has a <em>specialist</em>.</h2>
+  <p class="section-intro">
     Routing decisions are backed by benchmark accuracy from the
-    <a href="https://github.com/rdxvicky/llm-bias-evaluator" target="_blank" style="color:var(--clay-light)">LLM Bias Evaluator</a>
-    — 270 samples across 9 categories (StereoSet, CrowS-Pairs, BBQ, HolisticBias, BOLD).
-    Override any mapping with <code>SR_CUSTOM_ROUTING</code>.
+    <a href="https://github.com/rdxvicky/llm-bias-evaluator" target="_blank" style="color:var(--coral); text-decoration:underline; text-underline-offset:3px;">LLM Bias Evaluator</a>
+    — 270 samples across StereoSet, CrowS-Pairs, BBQ, HolisticBias, and BOLD.
   </p>
 
-  <div class="table-wrap">
+  <div class="routing-card">
     <table>
       <thead>
         <tr>
-          <th>Bias Category</th>
-          <th>Routed To</th>
-          <th>Model</th>
-          <th>Accuracy</th>
+          <th>Bias category</th>
+          <th>Routed to</th>
+          <th>Model ID</th>
+          <th>Benchmark accuracy</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td><span class="tag">gender</span></td>
-          <td><span class="model-badge">GPT-4</span></td>
-          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">gpt-4o</td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
+          <td><span class="cat-tag">gender</span></td>
+          <td><span class="provider-pill"><span class="dot"></span>GPT-4</span></td>
+          <td><code>gpt-4o</code></td>
+          <td><div class="acc-cell"><div class="acc-bar"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
         </tr>
         <tr>
-          <td><span class="tag">disability</span></td>
-          <td><span class="model-badge">GPT-4</span></td>
-          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">gpt-4o</td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:100%"></div></div><span class="acc-num">100%</span></div></td>
+          <td><span class="cat-tag">disability</span></td>
+          <td><span class="provider-pill"><span class="dot"></span>GPT-4</span></td>
+          <td><code>gpt-4o</code></td>
+          <td><div class="acc-cell"><div class="acc-bar"><div class="acc-fill" style="width:100%"></div></div><span class="acc-num">100%</span></div></td>
         </tr>
         <tr>
-          <td><span class="tag">religion</span></td>
-          <td><span class="model-badge">GPT-4</span></td>
-          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">gpt-4o</td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
+          <td><span class="cat-tag">religion</span></td>
+          <td><span class="provider-pill"><span class="dot"></span>GPT-4</span></td>
+          <td><code>gpt-4o</code></td>
+          <td><div class="acc-cell"><div class="acc-bar"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
         </tr>
         <tr>
-          <td><span class="tag">race</span></td>
-          <td><span class="model-badge">Claude</span></td>
-          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">claude-opus-4-5</td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:83.3%"></div></div><span class="acc-num">83.3%</span></div></td>
+          <td><span class="cat-tag">race</span></td>
+          <td><span class="provider-pill"><span class="dot"></span>Claude</span></td>
+          <td><code>claude-opus-4-5</code></td>
+          <td><div class="acc-cell"><div class="acc-bar"><div class="acc-fill" style="width:83.3%"></div></div><span class="acc-num">83.3%</span></div></td>
         </tr>
         <tr>
-          <td><span class="tag">age</span></td>
-          <td><span class="model-badge">Claude</span></td>
-          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">claude-opus-4-5</td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:100%"></div></div><span class="acc-num">100%</span></div></td>
+          <td><span class="cat-tag">age</span></td>
+          <td><span class="provider-pill"><span class="dot"></span>Claude</span></td>
+          <td><code>claude-opus-4-5</code></td>
+          <td><div class="acc-cell"><div class="acc-bar"><div class="acc-fill" style="width:100%"></div></div><span class="acc-num">100%</span></div></td>
         </tr>
         <tr>
-          <td><span class="tag">sexual_orientation</span></td>
-          <td><span class="model-badge">Claude</span></td>
-          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">claude-opus-4-5</td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:83.3%"></div></div><span class="acc-num">83.3%</span></div></td>
+          <td><span class="cat-tag">sexual_orientation</span></td>
+          <td><span class="provider-pill"><span class="dot"></span>Claude</span></td>
+          <td><code>claude-opus-4-5</code></td>
+          <td><div class="acc-cell"><div class="acc-bar"><div class="acc-fill" style="width:83.3%"></div></div><span class="acc-num">83.3%</span></div></td>
         </tr>
         <tr>
-          <td><span class="tag">socioeconomic_status</span></td>
-          <td><span class="model-badge">Claude</span></td>
-          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">claude-opus-4-5</td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
+          <td><span class="cat-tag">socioeconomic_status</span></td>
+          <td><span class="provider-pill"><span class="dot"></span>Claude</span></td>
+          <td><code>claude-opus-4-5</code></td>
+          <td><div class="acc-cell"><div class="acc-bar"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
         </tr>
         <tr>
-          <td><span class="tag">nationality</span></td>
-          <td><span class="model-badge">Gemini</span></td>
-          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">gemini-2.0-flash</td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
+          <td><span class="cat-tag">nationality</span></td>
+          <td><span class="provider-pill"><span class="dot"></span>Gemini</span></td>
+          <td><code>gemini-2.0-flash</code></td>
+          <td><div class="acc-cell"><div class="acc-bar"><div class="acc-fill" style="width:96.7%"></div></div><span class="acc-num">96.7%</span></div></td>
         </tr>
         <tr>
-          <td><span class="tag">physical_appearance</span></td>
-          <td><span class="model-badge">Gemini</span></td>
-          <td style="font-size:0.77rem; color:var(--text3); font-family:var(--mono)">gemini-2.0-flash</td>
-          <td><div class="acc-bar"><div class="acc-track"><div class="acc-fill" style="width:100%"></div></div><span class="acc-num">100%</span></div></td>
+          <td><span class="cat-tag">physical_appearance</span></td>
+          <td><span class="provider-pill"><span class="dot"></span>Gemini</span></td>
+          <td><code>gemini-2.0-flash</code></td>
+          <td><div class="acc-cell"><div class="acc-bar"><div class="acc-fill" style="width:100%"></div></div><span class="acc-num">100%</span></div></td>
         </tr>
       </tbody>
     </table>
   </div>
 </section>
 
-<hr class="divider" />
-
-<!-- ── CODE EXAMPLES ── -->
-<section class="section" id="code">
+<!-- ── DOCUMENTATION / CODE ── -->
+<section class="section" id="docs" style="padding-top:3rem;">
   <div class="section-label">Documentation</div>
-  <h2>Three ways to use SafetyRouter</h2>
-  <p class="section-sub">Python SDK for embedding in applications, CLI for quick testing, or HTTP server to drop behind any stack.</p>
+  <h2>Three ways<br/>to <em>integrate</em>.</h2>
+  <p class="section-intro">
+    Python SDK for embedding in applications, CLI for quick testing,
+    or HTTP server to drop behind any stack.
+  </p>
 
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('sdk', this)">Python SDK</div>
-    <div class="tab" onclick="switchTab('cli', this)">CLI</div>
-    <div class="tab" onclick="switchTab('http', this)">HTTP Server</div>
-    <div class="tab" onclick="switchTab('stream', this)">Streaming</div>
-    <div class="tab" onclick="switchTab('local', this)">Fully Local</div>
-  </div>
+  <div class="docs-grid">
+    <aside class="docs-side">
+      <div class="docs-side-label">Quick start</div>
+      <div class="docs-tabs">
+        <button class="docs-tab active" onclick="switchTab('sdk', this)">Python SDK</button>
+        <button class="docs-tab" onclick="switchTab('cli', this)">CLI</button>
+        <button class="docs-tab" onclick="switchTab('http', this)">HTTP Server</button>
+        <button class="docs-tab" onclick="switchTab('stream', this)">Streaming</button>
+        <button class="docs-tab" onclick="switchTab('local', this)">Fully local</button>
+      </div>
+    </aside>
 
-  <div class="code-block">
-    <div class="code-header">
-      <div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
-      <span class="code-lang" id="code-lang-label">python</span>
-    </div>
+    <div class="docs-codeblock">
+      <div class="term-bar">
+        <div class="term-dots"><div class="term-dot"></div><div class="term-dot"></div><div class="term-dot"></div></div>
+        <div class="term-title" id="code-title">main.py</div>
+        <div style="width:42px"></div>
+      </div>
 
-    <!-- SDK -->
-    <div class="tab-panel active" id="panel-sdk">
+      <div class="docs-panel active" id="panel-sdk">
 <pre><span class="kw">import</span> asyncio
-<span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>, <span class="nm">SafetyRouterConfig</span>
+<span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>
 
-<span class="cm"># Reads OPENAI_API_KEY / ANTHROPIC_API_KEY / GOOGLE_API_KEY from environment</span>
+<span class="cm"># Reads API keys from environment</span>
 <span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>()
 
 <span class="kw">async def</span> <span class="fn">main</span>():
-    <span class="cm"># Basic usage — classify + route + get response</span>
-    <span class="nm">r</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="st">"Should women be paid less than men?"</span>)
+    <span class="nm">r</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="st">"Should women be paid less?"</span>)
 
     <span class="fn">print</span>(<span class="nm">r</span>.bias_category)   <span class="cm"># "gender"</span>
     <span class="fn">print</span>(<span class="nm">r</span>.selected_model)  <span class="cm"># "gpt4"</span>
-    <span class="fn">print</span>(<span class="nm">r</span>.confidence)      <span class="cm"># 0.92</span>
     <span class="fn">print</span>(<span class="nm">r</span>.model_accuracy)   <span class="cm"># 96.7</span>
     <span class="fn">print</span>(<span class="nm">r</span>.content)         <span class="cm"># LLM answer</span>
-    <span class="fn">print</span>(<span class="nm">r</span>.response_time)    <span class="cm"># 2.341 (seconds, float)</span>
 
-    <span class="cm"># Bias rephrasing — always present in bias_analysis</span>
-    <span class="nm">rephrase</span> <span class="op">=</span> <span class="nm">r</span>.bias_analysis[<span class="st">"rephrased_text"</span>]
-    <span class="fn">print</span>(<span class="nm">rephrase</span>[<span class="st">"rephrased"</span>])        <span class="cm"># "Should all employees receive equal pay?"</span>
-    <span class="fn">print</span>(<span class="nm">rephrase</span>[<span class="st">"changes_made"</span>])      <span class="cm"># ["Removed gender reference"]</span>
-    <span class="fn">print</span>(<span class="nm">rephrase</span>[<span class="st">"meaning_preserved"</span>])  <span class="cm"># True</span>
+    <span class="cm"># Bias rephrasing — always present</span>
+    <span class="nm">rp</span> <span class="op">=</span> <span class="nm">r</span>.bias_analysis[<span class="st">"rephrased_text"</span>]
+    <span class="fn">print</span>(<span class="nm">rp</span>[<span class="st">"rephrased"</span>])   <span class="cm"># "Should all employees receive equal pay?"</span>
+    <span class="fn">print</span>(<span class="nm">rp</span>[<span class="st">"meaning_preserved"</span>])  <span class="cm"># True</span>
 
-    <span class="cm"># Handle crisis escalation</span>
+    <span class="cm"># Crisis escalation</span>
     <span class="kw">if</span> <span class="nm">r</span>.escalation_type <span class="op">==</span> <span class="st">"emergency"</span>:
-        <span class="cm"># LLM was NOT called — only crisis info is returned</span>
-        <span class="fn">print</span>(<span class="nm">r</span>.escalation_number)         <span class="cm"># "988"</span>
-        <span class="fn">print</span>(<span class="nm">r</span>.escalation_service)        <span class="cm"># "988 Suicide & Crisis Lifeline"</span>
-        <span class="fn">print</span>(<span class="nm">r</span>.escalation_webchat)        <span class="cm"># "https://988lifeline.org/chat"</span>
-        <span class="fn">print</span>(<span class="nm">r</span>.session_transcript_path)   <span class="cm"># "~/.safetyrouter/sessions/2025-..."</span>
+        <span class="fn">print</span>(<span class="nm">r</span>.escalation_number)  <span class="cm"># "988"</span>
+        <span class="fn">print</span>(<span class="nm">r</span>.escalation_service) <span class="cm"># "988 Suicide & Crisis Lifeline"</span>
+        <span class="fn">print</span>(<span class="nm">r</span>.session_transcript_path)
 
-    <span class="kw">elif</span> <span class="nm">r</span>.escalation_type <span class="op">==</span> <span class="st">"helpline"</span>:
-        <span class="cm"># LLM responded — helpline info also available</span>
-        <span class="fn">print</span>(<span class="nm">r</span>.content)                   <span class="cm"># LLM answer</span>
-        <span class="fn">print</span>(<span class="nm">r</span>.escalation_message)        <span class="cm"># "Support line: 988 — ..."</span>
-
-    <span class="cm"># Classify only — zero API cost, no LLM call</span>
-    <span class="nm">dry</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="st">"I feel worthless."</span>, execute<span class="op">=</span><span class="kw">False</span>)
+    <span class="cm"># Classify only — zero API cost</span>
+    <span class="nm">dry</span> <span class="op">=</span> <span class="kw">await</span> <span class="nm">router</span>.<span class="fn">route</span>(<span class="st">"text"</span>, execute<span class="op">=</span><span class="kw">False</span>)
     <span class="fn">print</span>(<span class="nm">dry</span>.mental_health_scores)
-    <span class="cm"># {"self_harm": 0.62, "severe_distress": 0.78, "existential_crisis": 0.41, ...}</span>
 
 asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
-    </div>
+      </div>
 
-    <!-- CLI -->
-    <div class="tab-panel" id="panel-cli">
-<pre><span class="cm"># First-time setup — Ollama + classifier model + user profile + API keys</span>
-<span class="dollar">$</span> safetyrouter setup
+      <div class="docs-panel" id="panel-cli">
+<pre><span class="cm"># First-time setup — Ollama, classifier, profile, API keys</span>
+<span class="kw">$</span> safetyrouter setup
 
-<span class="cm"># Route — outputs structured JSON by default</span>
-<span class="dollar">$</span> safetyrouter route <span class="st">"Should people be judged by their race?"</span>
+<span class="cm"># Route — outputs structured JSON</span>
+<span class="kw">$</span> safetyrouter route <span class="st">"Should people be judged by their race?"</span>
 
 {
   <span class="st">"routing_decision"</span>: {
     <span class="st">"selected_model"</span>: <span class="st">"claude"</span>,
     <span class="st">"bias_category"</span>: <span class="st">"race"</span>,
-    <span class="st">"confidence"</span>: <span class="nu">0.85</span>,
+    <span class="st">"confidence"</span>:     <span class="nu">0.85</span>,
     <span class="st">"model_accuracy"</span>: <span class="nu">83.3</span>,
-    <span class="st">"reason"</span>: <span class="st">"Routed to claude for 'race' bias (benchmark accuracy: 83.3%)"</span>,
-    <span class="st">"message_content"</span>: <span class="st">"No, people should not be judged by their race..."</span>
+    <span class="st">"reason"</span>: <span class="st">"Routed to claude — 83.3% accuracy"</span>,
+    <span class="st">"message_content"</span>: <span class="st">"No, people should not be..."</span>
   },
   <span class="st">"bias_analysis"</span>: {
-    <span class="st">"race"</span>:    { <span class="st">"probability"</span>: <span class="nu">0.85</span> },
-    <span class="st">"gender"</span>:  { <span class="st">"probability"</span>: <span class="nu">0.02</span> },
-    <span class="st">"age"</span>:     { <span class="st">"probability"</span>: <span class="nu">0.01</span> },
-    <span class="st">"highest_probability_category"</span>: {
-      <span class="st">"category"</span>: <span class="st">"race"</span>, <span class="st">"probability"</span>: <span class="nu">0.85</span>
-    },
+    <span class="st">"race"</span>: { <span class="st">"probability"</span>: <span class="nu">0.85</span> },
     <span class="st">"rephrased_text"</span>: {
-      <span class="st">"original"</span>:          <span class="st">"Should people be judged by their race?"</span>,
-      <span class="st">"rephrased"</span>:         <span class="st">"Should people be judged by their individual character?"</span>,
-      <span class="st">"changes_made"</span>:      [<span class="st">"Replaced 'race' with 'individual character'"</span>],
+      <span class="st">"original"</span>:  <span class="st">"Should people be judged by their race?"</span>,
+      <span class="st">"rephrased"</span>: <span class="st">"Should people be judged by character?"</span>,
       <span class="st">"meaning_preserved"</span>: <span class="kw">true</span>,
       <span class="st">"meaning_change_risk"</span>: <span class="st">"low"</span>
     }
@@ -1055,135 +1296,71 @@ asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
   <span class="st">"response_time"</span>: <span class="st">"14.2s"</span>
 }
 
-<span class="cm"># Emergency — LLM skipped, crisis resources returned</span>
-<span class="dollar">$</span> safetyrouter route <span class="st">"I want to hurt myself tonight."</span>
-
-{
-  <span class="st">"routing_decision"</span>: {
-    <span class="st">"selected_model"</span>: <span class="st">"ESCALATED"</span>,
-    <span class="st">"bias_category"</span>: <span class="st">"others"</span>,
-    <span class="st">"escalation_type"</span>: <span class="st">"emergency"</span>
-  },
-  <span class="st">"escalation"</span>: {
-    <span class="st">"type"</span>: <span class="st">"emergency"</span>,
-    <span class="st">"number"</span>: <span class="st">"988"</span>,
-    <span class="st">"service"</span>: <span class="st">"988 Suicide &amp; Crisis Lifeline"</span>,
-    <span class="st">"webchat"</span>: <span class="st">"https://988lifeline.org/chat"</span>,
-    <span class="st">"transcript"</span>: <span class="st">"~/.safetyrouter/sessions/2025-04-17T14-22-01.json"</span>
-  }
-}
-
 <span class="cm"># Classify only — no API call</span>
-<span class="dollar">$</span> safetyrouter classify <span class="st">"Women are worse drivers than men."</span>
+<span class="kw">$</span> safetyrouter classify <span class="st">"I feel hopeless."</span></pre>
+      </div>
 
-  Top bias      : gender
-  Confidence    : 91%
-  Would route to: gpt4
-  MH Risk       : none (0.00%)
+      <div class="docs-panel" id="panel-http">
+<pre><span class="cm"># Install + start the server</span>
+<span class="kw">$</span> pip install <span class="st">"safetyrouter[serve]"</span>
+<span class="kw">$</span> safetyrouter serve --host 0.0.0.0 --port 8000
 
-<span class="cm"># Inspect current routing table</span>
-<span class="dollar">$</span> safetyrouter inspect</pre>
-    </div>
-
-    <!-- HTTP -->
-    <div class="tab-panel" id="panel-http">
-<pre><span class="cm"># Install server dependencies + start</span>
-<span class="dollar">$</span> pip install <span class="st">"safetyrouter[serve]"</span>
-<span class="dollar">$</span> safetyrouter serve --host 0.0.0.0 --port 8000
-
-<span class="cm"># ── POST /route ─────────────────────────────────────────────</span>
-<span class="dollar">$</span> curl -s -X POST http://localhost:8000/route \
+<span class="cm"># POST /route</span>
+<span class="kw">$</span> curl -s -X POST localhost:8000/route \
     -H <span class="st">"Content-Type: application/json"</span> \
-    -d <span class="st">'{"text": "Are older workers less productive?"}'</span> | jq .
+    -d <span class="st">'{"text": "Are older workers less productive?"}'</span> | jq
 
 {
   <span class="st">"routing_decision"</span>: {
     <span class="st">"selected_model"</span>: <span class="st">"claude"</span>,
     <span class="st">"bias_category"</span>: <span class="st">"age"</span>,
-    <span class="st">"confidence"</span>: <span class="nu">0.89</span>,
+    <span class="st">"confidence"</span>:     <span class="nu">0.89</span>,
     <span class="st">"model_accuracy"</span>: <span class="nu">100.0</span>,
-    <span class="st">"reason"</span>: <span class="st">"Routed to claude for 'age' bias (benchmark accuracy: 100.0%)"</span>,
-    <span class="st">"message_content"</span>: <span class="st">"Research consistently shows no correlation between..."</span>
+    <span class="st">"message_content"</span>: <span class="st">"Research consistently shows..."</span>
   },
-  <span class="st">"bias_analysis"</span>: { <span class="st">"age"</span>: { <span class="st">"probability"</span>: <span class="nu">0.89</span> }, <span class="st">"..."</span>: <span class="st">"..."</span> },
-  <span class="st">"response_time"</span>: <span class="st">"9.431s"</span>,
-  <span class="st">"mental_health_scores"</span>: { <span class="st">"self_harm"</span>: <span class="nu">0.0</span>, <span class="st">"severe_distress"</span>: <span class="nu">0.0</span> },
-  <span class="st">"escalation_type"</span>: <span class="kw">null</span>
+  <span class="st">"escalation_type"</span>: <span class="kw">null</span>,
+  <span class="st">"response_time"</span>: <span class="st">"9.43s"</span>
 }
 
-<span class="cm"># ── POST /classify — no LLM call ───────────────────────────</span>
-<span class="dollar">$</span> curl -s -X POST http://localhost:8000/classify \
-    -H <span class="st">"Content-Type: application/json"</span> \
-    -d <span class="st">'{"text": "I feel like there is no point to anything."}'</span> | jq .
+<span class="cm"># Other endpoints</span>
+<span class="kw">$</span> curl localhost:8000/health
+<span class="kw">$</span> curl localhost:8000/routing-table
+<span class="kw">$</span> open localhost:8000/docs   <span class="cm"># Swagger UI</span></pre>
+      </div>
 
-{
-  <span class="st">"would_route_to"</span>: <span class="st">"claude"</span>,
-  <span class="st">"bias_category"</span>: <span class="st">"others"</span>,
-  <span class="st">"confidence"</span>: <span class="nu">0.1</span>,
-  <span class="st">"mental_health_scores"</span>: {
-    <span class="st">"self_harm"</span>: <span class="nu">0.12</span>,
-    <span class="st">"severe_distress"</span>: <span class="nu">0.71</span>,
-    <span class="st">"existential_crisis"</span>: <span class="nu">0.68</span>,
-    <span class="st">"emotional_dependency"</span>: <span class="nu">0.22</span>
-  },
-  <span class="st">"escalation_type"</span>: <span class="st">"helpline"</span>
-}
-
-<span class="cm"># ── Other endpoints ──────────────────────────────────────────</span>
-<span class="dollar">$</span> curl http://localhost:8000/health          <span class="cm"># {"status":"ok","classifier_model":"gemma3n:e2b"}</span>
-<span class="dollar">$</span> curl http://localhost:8000/routing-table   <span class="cm"># full routing table JSON</span>
-<span class="dollar">$</span> open http://localhost:8000/docs            <span class="cm"># interactive Swagger UI</span>
-
-<span class="cm"># Stream tokens (escalation checked before first token)</span>
-<span class="dollar">$</span> curl -N -X POST http://localhost:8000/route \
-    -H <span class="st">"Content-Type: application/json"</span> \
-    -d <span class="st">'{"text": "Is Islam more violent than other religions?", "stream": true}'</span></pre>
-    </div>
-
-    <!-- STREAM -->
-    <div class="tab-panel" id="panel-stream">
+      <div class="docs-panel" id="panel-stream">
 <pre><span class="kw">import</span> asyncio
 <span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>
 
 <span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>()
 
-<span class="kw">async def</span> <span class="fn">stream_response</span>(<span class="nm">text</span>: <span class="nm">str</span>):
+<span class="kw">async def</span> <span class="fn">stream</span>(<span class="nm">text</span>):
     <span class="cm"># Safety checks run BEFORE any tokens are yielded.</span>
     <span class="cm"># Emergency tier → yields crisis block + returns (no LLM tokens)</span>
-    <span class="cm"># Helpline tier  → yields LLM tokens then appends helpline line</span>
+    <span class="cm"># Helpline tier  → yields LLM tokens + appends helpline line</span>
     <span class="kw">async for</span> <span class="nm">token</span> <span class="kw">in</span> <span class="nm">router</span>.<span class="fn">stream</span>(<span class="nm">text</span>):
         <span class="fn">print</span>(<span class="nm">token</span>, end<span class="op">=</span><span class="st">""</span>, flush<span class="op">=</span><span class="kw">True</span>)
 
-<span class="cm"># Normal streaming — tokens from the routed model</span>
-asyncio.<span class="fn">run</span>(<span class="fn">stream_response</span>(<span class="st">"Are women less suited for leadership roles?"</span>))
-<span class="cm"># → streams GPT-4 tokens (gender bias, 96.7% accuracy)</span>
+<span class="cm"># Normal — streams from the routed model</span>
+asyncio.<span class="fn">run</span>(<span class="fn">stream</span>(<span class="st">"Are women less suited for leadership?"</span>))
 
-<span class="cm"># Emergency — no tokens, just crisis block</span>
-asyncio.<span class="fn">run</span>(<span class="fn">stream_response</span>(<span class="st">"I want to end it all."</span>))
-<span class="cm"># → yields: "CRISIS SUPPORT\nEmergency: 911\nCrisis line: 988 — 988 Suicide & Crisis Lifeline\n..."</span>
-<span class="cm"># → LLM is never called</span>
+<span class="cm"># Emergency — no LLM tokens, just crisis block</span>
+asyncio.<span class="fn">run</span>(<span class="fn">stream</span>(<span class="st">"I want to end it all."</span>))
+<span class="cm"># → "CRISIS SUPPORT</span>
+<span class="cm">#    Emergency: 911</span>
+<span class="cm">#    Crisis line: 988 — 988 Suicide & Crisis Lifeline"</span>
 
-<span class="cm"># Helpline — LLM tokens then helpline note</span>
-asyncio.<span class="fn">run</span>(<span class="fn">stream_response</span>(<span class="st">"I feel completely hopeless and empty."</span>))
-<span class="cm"># → streams model tokens...</span>
-<span class="cm"># → then yields: "\n\n---\nSupport line: 988 — 988 Suicide & Crisis Lifeline\nWebchat: https://988lifeline.org/chat"</span>
+<span class="cm"># Helpline — LLM tokens then helpline appended</span>
+asyncio.<span class="fn">run</span>(<span class="fn">stream</span>(<span class="st">"I feel completely hopeless."</span>))
+<span class="cm"># → ...model tokens...</span>
+<span class="cm"># → "\n---\nSupport line: 988"</span></pre>
+      </div>
 
-<span class="cm"># Custom system prompt</span>
-asyncio.<span class="fn">run</span>(<span class="fn">stream_response</span>(
-    <span class="st">"Is it okay to pay women less?"</span>,
-))
-
-<span class="cm"># With HTTP server — streaming via SSE</span>
-<span class="cm"># curl -N -X POST http://localhost:8000/route \</span>
-<span class="cm">#   -d '{"text": "...", "stream": true}'</span></pre>
-    </div>
-
-    <!-- LOCAL -->
-    <div class="tab-panel" id="panel-local">
+      <div class="docs-panel" id="panel-local">
 <pre><span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>, <span class="nm">SafetyRouterConfig</span>
 <span class="kw">from</span> safetyrouter.providers <span class="kw">import</span> <span class="nm">OllamaProvider</span>
 
-<span class="cm"># Route everything to local Ollama models — zero external API calls</span>
+<span class="cm"># Route to local models — no external API calls</span>
 <span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>(
     providers<span class="op">=</span>{
         <span class="st">"gpt4"</span>:    <span class="fn">OllamaProvider</span>(model<span class="op">=</span><span class="st">"llama3.2"</span>),
@@ -1196,358 +1373,244 @@ asyncio.<span class="fn">run</span>(<span class="fn">stream_response</span>(
 <span class="cm"># User profile — controls crisis resources + system prompt tone</span>
 <span class="nm">config</span> <span class="op">=</span> <span class="fn">SafetyRouterConfig</span>(
     user_name<span class="op">=</span><span class="st">"Alex"</span>,
-    user_age_range<span class="op">=</span><span class="st">"Under 18"</span>,   <span class="cm"># → youth-aware system prompts</span>
-    user_country<span class="op">=</span><span class="st">"AU"</span>,            <span class="cm"># → Lifeline AU (13 11 14) for crisis</span>
-    self_harm_threshold<span class="op">=</span><span class="nm">0.70</span>,     <span class="cm"># emergency cutoff</span>
-    helpline_threshold<span class="op">=</span><span class="nm">0.60</span>,      <span class="cm"># helpline cutoff</span>
-    custom_routing<span class="op">=</span>{              <span class="cm"># override any category</span>
-        <span class="st">"gender"</span>:   <span class="st">"claude"</span>,
-        <span class="st">"religion"</span>: <span class="st">"gemini"</span>,
-    },
+    user_age_range<span class="op">=</span><span class="st">"Under 18"</span>,    <span class="cm"># youth-aware prompts</span>
+    user_country<span class="op">=</span><span class="st">"AU"</span>,             <span class="cm"># Lifeline AU 13 11 14</span>
+    self_harm_threshold<span class="op">=</span><span class="nu">0.70</span>,
+    helpline_threshold<span class="op">=</span><span class="nu">0.60</span>,
+    custom_routing<span class="op">=</span>{<span class="st">"gender"</span>: <span class="st">"claude"</span>},
 )
 
-<span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>(config<span class="op">=</span><span class="nm">config</span>)
-
-<span class="cm"># Or configure via environment variables:</span>
-<span class="cm"># SR_USER_NAME=Alex SR_USER_AGE_RANGE="Under 18" SR_USER_COUNTRY=AU</span>
-<span class="cm"># SR_SELF_HARM_THRESHOLD=0.70 SR_HELPLINE_THRESHOLD=0.60</span>
-<span class="cm"># SR_CUSTOM_ROUTING='{"gender":"claude","religion":"gemini"}'</span></pre>
+<span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>(config<span class="op">=</span><span class="nm">config</span>)</pre>
+      </div>
     </div>
   </div>
 </section>
-
-<hr class="divider" />
 
 <!-- ── FEATURES ── -->
-<section class="section" id="features">
+<section class="section" id="features" style="padding-top:3rem;">
   <div class="section-label">Features</div>
-  <h2>Built for responsible AI</h2>
-  <p class="section-sub">Every feature is designed around the principle that safety checks should never be an afterthought.</p>
+  <h2>Built for<br/><em>responsible</em> AI.</h2>
+  <p class="section-intro">
+    Every feature is designed around the principle that safety checks
+    should never be an afterthought.
+  </p>
 
-  <div class="features" style="grid-template-columns: repeat(3, 1fr);">
-    <div class="feature-card">
-      <div class="feature-icon">✏️</div>
-      <div class="feature-title">Bias rephrasing</div>
-      <div class="feature-desc">Every response includes a <code>rephrased_text</code> block — the original rewritten to remove bias with a changelog, meaning-preservation flag, and change-risk indicator. Runs locally at zero cost.</div>
+  <div class="features-grid">
+    <div class="feature">
+      <div class="feature-num">— 01</div>
+      <h3>Bias <em>rephrasing</em></h3>
+      <p>Every response includes a <code>rephrased_text</code> object — original rewritten without bias, with a changelog and meaning-preservation flag. Runs locally at zero cost.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🧠</div>
-      <div class="feature-title">Mental health detection</div>
-      <div class="feature-desc">Four risk signals scored on every request: <code>self_harm</code>, <code>severe_distress</code>, <code>existential_crisis</code>, <code>emotional_dependency</code>. All local, configurable thresholds.</div>
+    <div class="feature">
+      <div class="feature-num">— 02</div>
+      <h3>Mental health<br/>detection</h3>
+      <p>Four signals scored on every request: self_harm, severe_distress, existential_crisis, emotional_dependency. All local, configurable thresholds.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🚨</div>
-      <div class="feature-title">Two-tier crisis escalation</div>
-      <div class="feature-desc">Emergency tier skips the LLM entirely — even in streaming mode. Helpline tier appends support info. Crisis checks fire before the first token. 15 countries built in.</div>
+    <div class="feature">
+      <div class="feature-num">— 03</div>
+      <h3>Two-tier crisis<br/><em>escalation</em></h3>
+      <p>Emergency tier skips the LLM entirely — even mid-stream. Helpline tier appends support info. Safety checks fire before the first token.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">⚡</div>
-      <div class="feature-title">Zero-cost classification</div>
-      <div class="feature-desc">All classification runs on your machine via Ollama (gemma3n:e2b). No API calls, no cost, no data leaving your environment until you choose to route.</div>
+    <div class="feature">
+      <div class="feature-num">— 04</div>
+      <h3>Zero-cost<br/>classification</h3>
+      <p>All classification runs on your machine via Ollama (gemma3n:e2b). No API calls, no cost, no data leaving your environment until you choose to route.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🎯</div>
-      <div class="feature-title">Benchmark-backed routing</div>
-      <div class="feature-desc">Each bias category routes to the model with the highest accuracy from a 270-sample benchmark. Override any mapping with <code>SR_CUSTOM_ROUTING</code>.</div>
+    <div class="feature">
+      <div class="feature-num">— 05</div>
+      <h3>Benchmark-backed<br/>routing</h3>
+      <p>Each bias category routes to the highest-accuracy model from a 270-sample benchmark. Override any mapping with <code>SR_CUSTOM_ROUTING</code>.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🌊</div>
-      <div class="feature-title">Safe streaming</div>
-      <div class="feature-desc">Token streaming with full escalation checks — emergency and helpline logic fires before any tokens are yielded. No unsafe responses leak through the stream.</div>
+    <div class="feature">
+      <div class="feature-num">— 06</div>
+      <h3>Safe streaming</h3>
+      <p>Token streaming with full escalation checks. Emergency and helpline logic runs before any tokens are yielded — no unsafe responses leak through.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🔌</div>
-      <div class="feature-title">Pluggable providers</div>
-      <div class="feature-desc">OpenAI, Anthropic, Google, Groq, and Ollama out of the box. Bring your own by subclassing <code>BaseProvider</code>. Providers are lazily loaded — only installed extras are imported.</div>
+    <div class="feature">
+      <div class="feature-num">— 07</div>
+      <h3>Pluggable<br/>providers</h3>
+      <p>OpenAI, Anthropic, Google, Groq, and Ollama out of the box. Bring your own by subclassing <code>BaseProvider</code>. Lazy-loaded — only installed extras are imported.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🏠</div>
-      <div class="feature-title">Fully local mode</div>
-      <div class="feature-desc">Route everything to local Ollama models. Zero external API dependency — perfect for air-gapped environments, local dev, or privacy-sensitive workloads.</div>
+    <div class="feature">
+      <div class="feature-num">— 08</div>
+      <h3>Fully local<br/>mode</h3>
+      <p>Route everything to local Ollama models. Zero external API dependency — perfect for air-gapped environments or privacy-sensitive workloads.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🛡️</div>
-      <div class="feature-title">Production hardened <span class="feature-new">v0.2.3</span></div>
-      <div class="feature-desc">Rate limiting (60 req/min), input length validation, classifier fallback on malformed JSON, provider error isolation, thread-safe server init, 26 unit tests.</div>
+    <div class="feature">
+      <div class="feature-num">— 09</div>
+      <h3>Production<br/><em>hardened</em></h3>
+      <p>Rate limiting (60 req/min), input length validation, classifier fallback on malformed JSON, provider error isolation, thread-safe init, 26 unit tests.</p>
     </div>
   </div>
 </section>
 
-<hr class="divider" />
-
-<!-- ── CONFIG REFERENCE ── -->
-<section class="section" id="config">
+<!-- ── CONFIGURATION ── -->
+<section class="section" id="config" style="padding-top:3rem;">
   <div class="section-label">Configuration</div>
-  <h2>All environment variables</h2>
-  <p class="section-sub">
+  <h2>All environment<br/><em>variables</em>.</h2>
+  <p class="section-intro">
     Every option can be set via environment variable or passed directly to <code>SafetyRouterConfig</code>.
     <code>safetyrouter setup</code> writes a <code>.env</code> file automatically.
   </p>
 
-  <div class="config-table" style="margin-bottom: 2.5rem;">
+  <div class="config-card">
     <table>
       <thead>
-        <tr>
-          <th>Variable</th>
-          <th>Default</th>
-          <th>Description</th>
-        </tr>
+        <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
       </thead>
       <tbody>
-        <tr>
-          <td class="env-key">SR_CLASSIFIER_MODEL</td>
-          <td class="env-default">gemma3n:e2b</td>
-          <td class="env-desc">Ollama model used for local bias + mental health classification</td>
-        </tr>
-        <tr>
-          <td class="env-key">SR_USER_NAME</td>
-          <td class="env-default">—</td>
-          <td class="env-desc">User's name — used in crisis transcript and age-aware system prompts</td>
-        </tr>
-        <tr>
-          <td class="env-key">SR_USER_AGE_RANGE</td>
-          <td class="env-default">—</td>
-          <td class="env-desc">Age range (<code>Under 18</code>, <code>18–25</code>, …, <code>60+</code>) — activates youth/elder-aware prompts</td>
-        </tr>
-        <tr>
-          <td class="env-key">SR_USER_COUNTRY</td>
-          <td class="env-default">US</td>
-          <td class="env-desc">ISO-2 country code or full name — determines crisis helpline and emergency number</td>
-        </tr>
-        <tr>
-          <td class="env-key">SR_SELF_HARM_THRESHOLD</td>
-          <td class="env-default">0.70</td>
-          <td class="env-desc">self_harm score ≥ this triggers Tier 1 emergency (LLM skipped)</td>
-        </tr>
-        <tr>
-          <td class="env-key">SR_HELPLINE_THRESHOLD</td>
-          <td class="env-default">0.60</td>
-          <td class="env-desc">severe_distress / existential_crisis ≥ this triggers Tier 2 helpline append</td>
-        </tr>
-        <tr>
-          <td class="env-key">SR_CUSTOM_ROUTING</td>
-          <td class="env-default">{}</td>
-          <td class="env-desc">JSON map of bias category → provider override, e.g. <code>{"gender":"claude"}</code></td>
-        </tr>
-        <tr>
-          <td class="env-key">OPENAI_API_KEY</td>
-          <td class="env-default">—</td>
-          <td class="env-desc">Required for GPT-4 routing (gender, disability, religion). Install: <code>pip install "safetyrouter[openai]"</code></td>
-        </tr>
-        <tr>
-          <td class="env-key">ANTHROPIC_API_KEY</td>
-          <td class="env-default">—</td>
-          <td class="env-desc">Required for Claude routing (race, age, sexual_orientation, socioeconomic_status)</td>
-        </tr>
-        <tr>
-          <td class="env-key">GOOGLE_API_KEY</td>
-          <td class="env-default">—</td>
-          <td class="env-desc">Required for Gemini routing (nationality, physical_appearance)</td>
-        </tr>
-        <tr>
-          <td class="env-key">GROQ_API_KEY</td>
-          <td class="env-default">—</td>
-          <td class="env-desc">Optional — Groq/Mixtral as a fast fallback or custom routing target</td>
-        </tr>
+        <tr><td><span class="env">SR_CLASSIFIER_MODEL</span></td><td><span class="def">gemma3n:e2b</span></td><td class="desc">Ollama model for local bias + mental health classification</td></tr>
+        <tr><td><span class="env">SR_USER_NAME</span></td><td><span class="def">—</span></td><td class="desc">User's name — used in crisis transcript and age-aware prompts</td></tr>
+        <tr><td><span class="env">SR_USER_AGE_RANGE</span></td><td><span class="def">—</span></td><td class="desc">Age range (Under 18, 18–25, … 60+) — activates youth/elder-aware prompts</td></tr>
+        <tr><td><span class="env">SR_USER_COUNTRY</span></td><td><span class="def">US</span></td><td class="desc">ISO-2 code or full name — determines crisis helpline and emergency number</td></tr>
+        <tr><td><span class="env">SR_SELF_HARM_THRESHOLD</span></td><td><span class="def">0.70</span></td><td class="desc">self_harm score ≥ this triggers Tier 1 emergency (LLM skipped)</td></tr>
+        <tr><td><span class="env">SR_HELPLINE_THRESHOLD</span></td><td><span class="def">0.60</span></td><td class="desc">severe_distress / existential_crisis ≥ this triggers Tier 2 helpline</td></tr>
+        <tr><td><span class="env">SR_CUSTOM_ROUTING</span></td><td><span class="def">{}</span></td><td class="desc">JSON map of bias category → provider override, e.g. <code>{"gender":"claude"}</code></td></tr>
+        <tr><td><span class="env">OPENAI_API_KEY</span></td><td><span class="def">—</span></td><td class="desc">Required for GPT-4 routing (gender, disability, religion)</td></tr>
+        <tr><td><span class="env">ANTHROPIC_API_KEY</span></td><td><span class="def">—</span></td><td class="desc">Required for Claude routing (race, age, sexual_orientation, socioeconomic)</td></tr>
+        <tr><td><span class="env">GOOGLE_API_KEY</span></td><td><span class="def">—</span></td><td class="desc">Required for Gemini routing (nationality, physical_appearance)</td></tr>
+        <tr><td><span class="env">GROQ_API_KEY</span></td><td><span class="def">—</span></td><td class="desc">Optional — Groq/Mixtral as fallback or custom routing target</td></tr>
       </tbody>
     </table>
   </div>
-
-  <div style="max-width:700px;">
-    <div class="col-label" style="margin-bottom:0.75rem">Programmatic configuration</div>
-    <div class="code-block rounded">
-      <div class="code-header">
-        <div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
-        <span class="code-lang">python</span>
-      </div>
-<pre><span class="kw">from</span> safetyrouter <span class="kw">import</span> <span class="nm">SafetyRouter</span>, <span class="nm">SafetyRouterConfig</span>
-
-<span class="nm">config</span> <span class="op">=</span> <span class="fn">SafetyRouterConfig</span>(
-    classifier_model<span class="op">=</span><span class="st">"gemma3n:e2b"</span>,
-    user_name<span class="op">=</span><span class="st">"Alex"</span>,
-    user_age_range<span class="op">=</span><span class="st">"18–25"</span>,
-    user_country<span class="op">=</span><span class="st">"UK"</span>,            <span class="cm"># → Samaritans 116 123 for crisis</span>
-    self_harm_threshold<span class="op">=</span><span class="nm">0.70</span>,
-    helpline_threshold<span class="op">=</span><span class="nm">0.60</span>,
-    custom_routing<span class="op">=</span>{<span class="st">"gender"</span>: <span class="st">"gemini"</span>},
-)
-<span class="nm">router</span> <span class="op">=</span> <span class="fn">SafetyRouter</span>(config<span class="op">=</span><span class="nm">config</span>)</pre>
-    </div>
-  </div>
 </section>
 
-<hr class="divider" />
-
-<!-- ── PROVIDERS ── -->
-<section class="section-sm" style="text-align:center;">
-  <div class="section-label" style="text-align:center">Providers</div>
-  <h2 style="margin-bottom:0.65rem">Works with every major LLM</h2>
-  <p class="section-sub" style="margin: 0 auto 2rem;">All providers are optional extras — only install what you use. Ollama is used for classification on every request.</p>
-  <div class="providers">
-    <div class="provider-chip"><div class="provider-dot"></div>OpenAI — GPT-4o</div>
-    <div class="provider-chip"><div class="provider-dot"></div>Anthropic — Claude</div>
-    <div class="provider-chip"><div class="provider-dot"></div>Google — Gemini 2.0</div>
-    <div class="provider-chip"><div class="provider-dot"></div>Groq — Mixtral</div>
-    <div class="provider-chip"><div class="provider-dot"></div>Ollama — any local model</div>
-    <div class="provider-chip" style="border-style:dashed; color:var(--text3)">+ Bring your own</div>
-  </div>
-</section>
-
-<hr class="divider" />
-
-<!-- ── INSTALL ── -->
-<section class="install-section" id="install">
-  <div class="section-label" style="text-align:center">Install</div>
-  <h2 style="text-align:center; margin-bottom:0.5rem;">Up and running in 2 commands</h2>
-  <p style="color:var(--text2); font-size:0.95rem; max-width:460px; margin: 0 auto; line-height:1.7;">
-    <code>safetyrouter setup</code> handles Ollama, the classifier model, user profile, and API keys.
-  </p>
-
-  <div class="install-cols">
-    <div class="install-col-commands">
-      <div class="col-label">Commands</div>
-      <div class="cmd-line"><span class="dollar">$</span> pip install safetyrouter</div>
-      <div class="cmd-line"><span class="dollar">$</span> <span style="color:var(--clay-light); font-weight:600;">safetyrouter setup</span></div>
-      <div class="col-label" style="margin-top:1.25rem;">With providers</div>
-      <div class="cmd-line" style="font-size:0.79rem;"><span class="dollar">$</span> pip install <span style="color:var(--clay-light)">"safetyrouter[openai]"</span></div>
-      <div class="cmd-line" style="font-size:0.79rem;"><span class="dollar">$</span> pip install <span style="color:var(--clay-light)">"safetyrouter[anthropic]"</span></div>
-      <div class="cmd-line" style="font-size:0.79rem;"><span class="dollar">$</span> pip install <span style="color:var(--clay-light)">"safetyrouter[all]"</span></div>
-    </div>
-
-    <div class="install-col-output">
-      <div class="col-label">Setup walkthrough</div>
-      <div class="code-block rounded">
-        <div class="code-header">
-          <div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
-          <span class="code-lang">bash</span>
-        </div>
-        <pre style="font-size:0.78rem; line-height:1.85; padding:1.25rem;"><span style="color:var(--clay-light); font-weight:600;">SafetyRouter Setup</span>
-<span style="color:var(--text3)">──────────────────────────────</span>
-
-<span style="color:var(--text2)">[1/5] Checking Ollama installation...</span>
-      <span style="color:var(--green)">✓ Ollama already installed.</span>
-
-<span style="color:var(--text2)">[2/5] Checking Ollama is running...</span>
-      <span style="color:var(--green)">✓ Ollama already running.</span>
-
-<span style="color:var(--text2)">[3/5] Pulling classifier model (gemma3n:e2b)...</span>
-      <span style="color:var(--green)">✓ gemma3n:e2b is ready.</span>
-
-<span style="color:var(--clay-light); font-weight:600;">[4/5] A few quick questions...</span>
-
-  <span style="color:var(--text2)">What should we call you?:</span> <span style="color:var(--green)">Alex</span>
-  <span style="color:var(--text2)">Age range:</span> <span style="color:var(--green)">[2] 18–25</span>
-  <span style="color:var(--text2)">Country code or name:</span> <span style="color:var(--green)">US</span>
-  <span style="color:var(--green)">✓ Crisis resources loaded for United States</span>
-     Emergency  : 911
-     Crisis line: 988 — 988 Suicide &amp; Crisis Lifeline
-
-<span style="color:var(--text2)">[5/5] Configure API keys...</span>
-  <span style="color:var(--text2)">OpenAI key (sk-...):</span> <span style="color:var(--green)">sk-proj-...</span>
-  <span style="color:var(--green)">✓ OpenAI key saved.</span>
-
-<span style="color:var(--green); font-weight:600;">✓ Setup complete! SafetyRouter is ready.</span>
-<span style="color:var(--text3)">  Run: safetyrouter route "your text here"</span></pre>
+<!-- ── INSTALL CTA ── -->
+<section class="install" id="install">
+  <div class="install-inner">
+    <div>
+      <div class="section-label" style="color:#b8b29c">Get started</div>
+      <h2>Two commands<br/>to <em>safer</em> AI.</h2>
+      <p class="install-sub">
+        Install the package, run setup. SafetyRouter handles Ollama, the classifier model,
+        your profile, and API keys. You're routing in under a minute.
+      </p>
+      <div class="install-pills">
+        <div class="install-pill">Python 3.10+</div>
+        <div class="install-pill">Apache 2.0</div>
+        <div class="install-pill">v0.2.3</div>
+      </div>
+      <div class="install-buttons">
+        <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="btn-cream">
+          GitHub
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="https://pypi.org/project/safetyrouter/" target="_blank" class="btn-outline-cream">PyPI</a>
       </div>
     </div>
-  </div>
 
-  <div style="margin-top: 2.5rem; display:flex; gap:0.85rem; justify-content:center; flex-wrap:wrap;">
-    <a href="https://github.com/rdxvicky/safetyrouter" target="_blank" class="btn-primary">View on GitHub</a>
-    <a href="https://pypi.org/project/safetyrouter/" target="_blank" class="btn-secondary">PyPI Package</a>
+    <div class="install-cmds">
+      <div class="cmd-box" onclick="copyText(this, 'pip install safetyrouter')">
+        <span class="label-pre">install</span>
+        <span class="arrow">→</span>
+        <span>pip install safetyrouter</span>
+      </div>
+      <div class="cmd-box" onclick="copyText(this, 'safetyrouter setup')">
+        <span class="label-pre">setup</span>
+        <span class="arrow">→</span>
+        <span>safetyrouter setup</span>
+      </div>
+      <div class="cmd-box" onclick="copyText(this, 'safetyrouter route &quot;your text here&quot;')">
+        <span class="label-pre">route</span>
+        <span class="arrow">→</span>
+        <span>safetyrouter route "your text here"</span>
+      </div>
+      <div class="cmd-box" onclick="copyText(this, 'pip install &quot;safetyrouter[all]&quot;')">
+        <span class="label-pre">all extras</span>
+        <span class="arrow">→</span>
+        <span>pip install "safetyrouter[all]"</span>
+      </div>
+      <div class="cmd-box" onclick="copyText(this, 'safetyrouter serve --port 8000')">
+        <span class="label-pre">serve</span>
+        <span class="arrow">→</span>
+        <span>safetyrouter serve --port 8000</span>
+      </div>
+    </div>
   </div>
 </section>
 
 <!-- ── CHANGELOG ── -->
-<section class="section" id="changelog">
+<section class="section" id="changelog" style="padding-top:5rem;">
   <div class="section-label">Changelog</div>
-  <h2>What's new</h2>
-  <p class="section-sub">SafetyRouter follows semantic versioning. All changes are backwards-compatible within a minor version.</p>
+  <h2>What's <em>new</em>.</h2>
+  <p class="section-intro">SafetyRouter follows semantic versioning. All changes are backwards-compatible within a minor version.</p>
 
-  <div class="changelog">
-    <div class="changelog-item">
-      <div class="changelog-meta">
-        <div class="changelog-version">v0.2.3</div>
-        <div class="changelog-date">Apr 2026</div>
+  <div class="changelog-list">
+    <div class="changelog-row">
+      <div class="cl-meta">
+        <div class="cl-version">v0.2.3</div>
+        <div class="cl-date">April 2026</div>
       </div>
-      <div class="changelog-body">
+      <div class="cl-body">
         <h3>Production hardening</h3>
-        <div class="changelog-tags">
-          <span class="changelog-tag fix">fix</span>
-          <span class="changelog-tag improve">improve</span>
+        <div class="cl-tags">
+          <span class="cl-tag fix">fix</span>
+          <span class="cl-tag improve">improve</span>
         </div>
-        <ul class="changelog-list">
-          <li><strong>CRITICAL</strong> — stream() now checks escalation before yielding any tokens; emergency stops the stream entirely</li>
-          <li><strong>High</strong> — classifier wrapped in asyncio.to_thread(); no longer blocks event loop</li>
-          <li><strong>High</strong> — classifier falls back to safe defaults on malformed JSON instead of crashing</li>
-          <li><strong>High</strong> — emotional_dependency included in helpline threshold check</li>
-          <li><strong>Medium</strong> — SR_CUSTOM_ROUTING env var for per-category routing overrides</li>
-          <li><strong>Medium</strong> — _safe_float() prevents crashes on invalid threshold env vars</li>
-          <li><strong>Medium</strong> — in-memory rate limiter (60 req/min per IP) on /route and /classify</li>
-          <li><strong>Medium</strong> — input length limit (10,000 chars) enforced at router and server</li>
-          <li><strong>Low</strong> — demographic skip added to _find_highest() to prevent catch-all category from winning</li>
-          <li><strong>Low</strong> — session transcripts chmod'd 0o600 (owner read/write only)</li>
-          <li>26 unit tests, all passing with correct nested classifier output format</li>
+        <ul class="cl-items">
+          <li><span class="imp crit">Critical</span><span><strong>Stream escalation gap closed</strong> — stream() now checks self_harm and crisis scores before yielding any tokens; emergency stops the stream entirely.</span></li>
+          <li><span class="imp high">High</span><span><strong>Async classifier</strong> — wrapped in asyncio.to_thread(); no longer blocks the event loop on Ollama calls.</span></li>
+          <li><span class="imp high">High</span><span><strong>Safe fallback on malformed JSON</strong> — classifier degrades gracefully instead of crashing the request.</span></li>
+          <li><span class="imp">Medium</span><span><strong>SR_CUSTOM_ROUTING env var</strong> — JSON-encoded per-category routing overrides without code changes.</span></li>
+          <li><span class="imp">Medium</span><span><strong>Rate limiting + input length</strong> — 60 req/min per IP; 10,000-char input cap enforced at router and server.</span></li>
+          <li><span class="imp">Low</span><span><strong>Demographic skip + 0o600 transcripts</strong> — catch-all category no longer wins routing; sensitive transcripts owner-only.</span></li>
         </ul>
       </div>
     </div>
 
-    <div class="changelog-item">
-      <div class="changelog-meta">
-        <div class="changelog-version">v0.2.2</div>
-        <div class="changelog-date">Apr 2026</div>
+    <div class="changelog-row">
+      <div class="cl-meta">
+        <div class="cl-version">v0.2.2</div>
+        <div class="cl-date">April 2026</div>
       </div>
-      <div class="changelog-body">
+      <div class="cl-body">
         <h3>Bias rephrasing + structured CLI output</h3>
-        <div class="changelog-tags">
-          <span class="changelog-tag new">new</span>
-          <span class="changelog-tag improve">improve</span>
+        <div class="cl-tags">
+          <span class="cl-tag new">new</span>
+          <span class="cl-tag improve">improve</span>
         </div>
-        <ul class="changelog-list">
-          <li><strong>New</strong> — bias rephrasing: classifier returns rephrased_text with original, rephrased, changes_made, meaning_preserved, meaning_change_risk</li>
-          <li><strong>New</strong> — safetyrouter route outputs structured JSON by default (routing_decision, bias_analysis, response_time)</li>
-          <li><strong>Improve</strong> — FastAPI server with thread-safe double-checked locking for router init</li>
-          <li><strong>Improve</strong> — streaming escalation checks added to HTTP /route?stream=true</li>
+        <ul class="cl-items">
+          <li><span class="imp">New</span><span><strong>Bias rephrasing</strong> — classifier returns rephrased_text with original, rephrased, changes_made, meaning_preserved, and meaning_change_risk.</span></li>
+          <li><span class="imp">New</span><span><strong>JSON CLI output</strong> — safetyrouter route returns structured JSON by default. The --json-output flag is removed.</span></li>
+          <li><span class="imp">Improve</span><span><strong>Server hardening</strong> — thread-safe double-checked locking for router init and streaming escalation in HTTP /route.</span></li>
         </ul>
       </div>
     </div>
 
-    <div class="changelog-item">
-      <div class="changelog-meta">
-        <div class="changelog-version">v0.2.0</div>
-        <div class="changelog-date">Mar 2026</div>
+    <div class="changelog-row">
+      <div class="cl-meta">
+        <div class="cl-version">v0.2.0</div>
+        <div class="cl-date">March 2026</div>
       </div>
-      <div class="changelog-body">
-        <h3>Mental health risk detection + crisis escalation</h3>
-        <div class="changelog-tags">
-          <span class="changelog-tag new">new</span>
+      <div class="cl-body">
+        <h3>Mental health risk + crisis escalation</h3>
+        <div class="cl-tags">
+          <span class="cl-tag new">new</span>
         </div>
-        <ul class="changelog-list">
-          <li><strong>New</strong> — 4 mental health signals scored locally (self_harm, severe_distress, existential_crisis, emotional_dependency)</li>
-          <li><strong>New</strong> — two-tier escalation: EMERGENCY skips LLM, HELPLINE appends support line</li>
-          <li><strong>New</strong> — crisis database covering 15 countries with helpline numbers and webchat links</li>
-          <li><strong>New</strong> — session transcript saved to ~/.safetyrouter/sessions/ on emergency</li>
-          <li><strong>New</strong> — user profile (name, age_range, country) in config for personalised crisis + age-aware prompts</li>
-          <li><strong>New</strong> — FastAPI server with /route, /classify, /health, /routing-table endpoints</li>
+        <ul class="cl-items">
+          <li><span class="imp">New</span><span><strong>4 mental health signals</strong> — self_harm, severe_distress, existential_crisis, emotional_dependency, all scored locally.</span></li>
+          <li><span class="imp">New</span><span><strong>Two-tier escalation</strong> — EMERGENCY skips LLM entirely; HELPLINE appends crisis line to LLM response.</span></li>
+          <li><span class="imp">New</span><span><strong>15-country crisis database</strong> — emergency numbers, helplines, and webchat links. Session transcripts saved to ~/.safetyrouter/sessions/.</span></li>
+          <li><span class="imp">New</span><span><strong>User profile</strong> — name, age_range, country in config for personalised crisis resources and age-aware prompts.</span></li>
+          <li><span class="imp">New</span><span><strong>FastAPI server</strong> — /route, /classify, /health, /routing-table endpoints.</span></li>
         </ul>
       </div>
     </div>
 
-    <div class="changelog-item">
-      <div class="changelog-meta">
-        <div class="changelog-version">v0.1.0</div>
-        <div class="changelog-date">Feb 2026</div>
+    <div class="changelog-row">
+      <div class="cl-meta">
+        <div class="cl-version">v0.1.0</div>
+        <div class="cl-date">February 2026</div>
       </div>
-      <div class="changelog-body">
-        <h3>Initial release — bias detection and routing</h3>
-        <div class="changelog-tags">
-          <span class="changelog-tag new">new</span>
+      <div class="cl-body">
+        <h3>Initial release</h3>
+        <div class="cl-tags">
+          <span class="cl-tag new">new</span>
         </div>
-        <ul class="changelog-list">
-          <li>9 bias categories classified locally with gemma3n:e2b via Ollama</li>
-          <li>Routing table backed by LLM Bias Evaluator benchmark (270 samples)</li>
-          <li>GPT-4, Claude, Gemini, Groq, and Ollama providers</li>
-          <li>Python SDK + CLI + pip package</li>
+        <ul class="cl-items">
+          <li><span class="imp">New</span><span><strong>9 bias categories</strong> classified locally with gemma3n:e2b via Ollama.</span></li>
+          <li><span class="imp">New</span><span><strong>Routing table</strong> backed by LLM Bias Evaluator benchmark (270 samples).</span></li>
+          <li><span class="imp">New</span><span><strong>5 providers</strong> — OpenAI, Anthropic, Google, Groq, Ollama. Python SDK + CLI + pip package.</span></li>
         </ul>
       </div>
     </div>
@@ -1556,37 +1619,67 @@ asyncio.<span class="fn">run</span>(<span class="fn">stream_response</span>(
 
 <!-- ── FOOTER ── -->
 <footer>
-  <div class="footer-logo">
-    <div class="nav-logo-icon" style="width:22px;height:22px;font-size:0.75rem;">🛡️</div>
-    SafetyRouter
-    <span style="color:var(--text3); font-weight:400; font-size:0.78rem; margin-left:0.4rem">v0.2.3</span>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="nav-logo">
+        <div class="nav-logo-mark">SR</div>
+        SafetyRouter
+      </div>
+      <p>Safety-aware LLM routing — bias detection, bias rephrasing, mental health risk detection, and human escalation. Apache 2.0.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#how">How it works</a>
+      <a href="#crisis">Crisis safety</a>
+      <a href="#features">Features</a>
+      <a href="#changelog">Changelog</a>
+    </div>
+    <div class="footer-col">
+      <h4>Documentation</h4>
+      <a href="#docs">Quick start</a>
+      <a href="#config">Configuration</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/rdxvicky/safetyrouter#readme" target="_blank">README</a>
+    </div>
+    <div class="footer-col">
+      <h4>Resources</h4>
+      <a href="https://github.com/rdxvicky/safetyrouter" target="_blank">GitHub</a>
+      <a href="https://pypi.org/project/safetyrouter/" target="_blank">PyPI</a>
+      <a href="https://github.com/rdxvicky/safetyrouter/issues" target="_blank">Issues</a>
+      <a href="https://github.com/rdxvicky/llm-bias-evaluator" target="_blank">Benchmark</a>
+    </div>
   </div>
-  <div class="footer-links">
-    <a href="https://github.com/rdxvicky/safetyrouter" target="_blank">GitHub</a>
-    <a href="https://pypi.org/project/safetyrouter/" target="_blank">PyPI</a>
-    <a href="https://github.com/rdxvicky/safetyrouter/issues" target="_blank">Issues</a>
-    <a href="https://github.com/rdxvicky/safetyrouter/blob/main/LICENSE" target="_blank">License</a>
-    <a href="https://github.com/rdxvicky/llm-bias-evaluator" target="_blank">Benchmark</a>
+  <div class="footer-bottom">
+    <div>© 2026 SafetyRouter contributors · Apache 2.0</div>
+    <div>v0.2.3</div>
   </div>
-  <div class="footer-copy">Apache 2.0 · Open Source</div>
 </footer>
 
 <script>
-  function copyInstall(el) {
-    navigator.clipboard.writeText('pip install "safetyrouter[all]"');
-    const btn = el.querySelector('.copy-btn');
-    btn.textContent = 'Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-  }
-
   function switchTab(name, el) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.docs-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.docs-panel').forEach(p => p.classList.remove('active'));
     el.classList.add('active');
     document.getElementById('panel-' + name).classList.add('active');
-    const labels = { sdk: 'python', cli: 'bash', http: 'bash', stream: 'python', local: 'python' };
-    document.getElementById('code-lang-label').textContent = labels[name] || 'python';
+    const titles = {
+      sdk: 'main.py',
+      cli: 'terminal · zsh',
+      http: 'terminal · zsh',
+      stream: 'stream.py',
+      local: 'config.py'
+    };
+    document.getElementById('code-title').textContent = titles[name] || 'main.py';
+  }
+
+  function copyText(el, text) {
+    navigator.clipboard.writeText(text);
+    const original = el.querySelector('.arrow').textContent;
+    el.querySelector('.arrow').textContent = '✓';
+    el.querySelector('.arrow').style.color = '#8ecf9e';
+    setTimeout(() => {
+      el.querySelector('.arrow').textContent = original;
+      el.querySelector('.arrow').style.color = '';
+    }, 1500);
   }
 </script>
 </body>
